@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\timeo\\\\Desktop\\\\CESI\\\\killer-bee\\\\killer-bee\\\\packages\\\\crypto\\\\src\\\\__tests__\")",
+      "Bash(ls \"C:\\\\Users\\\\timeo\\\\Desktop\\\\CESI\\\\killer-bee\\\\killer-bee\\\\\")",
+      "Read(//c/Users/timeo/Desktop/CESI/killer-bee/**)",
+      "Bash(npm install *)",
+      "Read(//usr/local/**)",
+      "Read(//c/Users/timeo/.nvm/**)",
+      "Read(//c/Users/timeo/AppData/Roaming/**)",
+      "Read(//c/Program Files/**)",
+      "Bash(cmd.exe /c \"where node 2>&1\")",
+      "Bash(cmd.exe /c \"where node\")",
+      "Bash(cmd.exe /c \"where npm\")",
+      "Bash(cmd.exe /c \"node --version 2>&1 && npm --version 2>&1\")"
+    ]
+  }
+}

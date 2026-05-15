@@ -1,0 +1,48 @@
+api:
+  dashboard: true
+  insecure: true
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+
+tls:
+  certificatesResolvers:
+    myresolver:
+      acme:
+        email: "admin@killerbee.com"
+        storage: "/acme/acme.json"
+        httpChallenge:
+          entryPoint: web
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: killerbee-net
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true
+
+log:
+  level: INFO
+  format: json
+
+accessLog:
+  format: json
+  fields:
+    headers:
+      names:
+        Authorization: drop
+
+metrics:
+  prometheus:
+    addEntryPointsLabels: true
+    addServicesLabels: true
+    addRoutersLabels: true

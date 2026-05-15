@@ -1,0 +1,170 @@
+http:
+  middlewares:
+    jwt-auth:
+      forwardAuth:
+        address: "http://auth-service:3001/auth/verify"
+        authResponseHeaders:
+          - "X-User-Id"
+          - "X-User-Email"
+          - "X-User-Role"
+        trustForwardHeader: true
+
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: 1s
+
+    secure-headers:
+      headers:
+        sslRedirect: true
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        contentTypeNosniff: true
+        frameDeny: true
+        customResponseHeaders:
+          X-Robots-Tag: "none,noarchive,nosnippet,notranslate,noimageindex"
+
+    cors:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        accessControlAllowHeaders:
+          - Content-Type
+          - Authorization
+        accessControlAllowOriginList:
+          - "https://killerbee.com"
+          - "http://localhost:5173"
+        accessControlMaxAge: 100
+        addVaryHeader: true
+
+  routers:
+    auth-router:
+      rule: "PathPrefix(`/api/auth`)"
+      service: auth-service
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: myresolver
+      middlewares:
+        - rate-limit
+        - secure-headers
+        - cors
+
+    models-router:
+      rule: "PathPrefix(`/api/models`)"
+      service: model-service
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: myresolver
+      middlewares:
+        - jwt-auth
+        - rate-limit
+        - secure-headers
+        - cors
+
+    ingredients-router:
+      rule: "PathPrefix(`/api/ingredients`)"
+      service: ingredient-service
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: myresolver
+      middlewares:
+        - jwt-auth
+        - rate-limit
+        - secure-headers
+        - cors
+
+    processes-router:
+      rule: "PathPrefix(`/api/processes`)"
+      service: process-service
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: myresolver
+      middlewares:
+        - jwt-auth
+        - rate-limit
+        - secure-headers
+        - cors
+
+    tests-router:
+      rule: "PathPrefix(`/api/tests`)"
+      service: test-service
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: myresolver
+      middlewares:
+        - jwt-auth
+        - rate-limit
+        - secure-headers
+        - cors
+
+    frontend-router:
+      rule: "PathPrefix(`/`)"
+      service: frontend
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: myresolver
+      middlewares:
+        - secure-headers
+
+  services:
+    auth-service:
+      loadBalancer:
+        servers:
+          - url: "http://auth-service:3001"
+        healthCheck:
+          path: /health
+          interval: 10s
+          timeout: 5s
+
+    model-service:
+      loadBalancer:
+        servers:
+          - url: "http://model-service:3002"
+        healthCheck:
+          path: /health
+          interval: 10s
+          timeout: 5s
+
+    ingredient-service:
+      loadBalancer:
+        servers:
+          - url: "http://ingredient-service:3003"
+        healthCheck:
+          path: /health
+          interval: 10s
+          timeout: 5s
+
+    process-service:
+      loadBalancer:
+        servers:
+          - url: "http://process-service:3004"
+        healthCheck:
+          path: /health
+          interval: 10s
+          timeout: 5s
+
+    test-service:
+      loadBalancer:
+        servers:
+          - url: "http://test-service:3005"
+        healthCheck:
+          path: /health
+          interval: 10s
+          timeout: 5s
+
+    frontend:
+      loadBalancer:
+        servers:
+          - url: "http://frontend:80"

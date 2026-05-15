@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.log
+coverage/
+acme.json
+*.pem
+*.key
+*.crt
+.DS_Store
