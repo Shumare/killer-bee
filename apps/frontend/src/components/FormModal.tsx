@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { useForm, type FieldValues, type Path } from 'react-hook-form';
+import { useEffect } from 'react';
+import { useForm, type FieldValues, type Path, type DefaultValues, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
@@ -52,12 +52,12 @@ function FormModal<T extends FieldValues>({
   } = useForm<T>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(schema) as any,
-    defaultValues: defaultValues as T,
+    defaultValues: defaultValues as DefaultValues<T>,
   });
 
   useEffect(() => {
     if (isOpen) {
-      reset(defaultValues as T);
+      reset(defaultValues as DefaultValues<T>);
     }
   }, [isOpen, defaultValues, reset]);
 
@@ -112,7 +112,7 @@ function FormModal<T extends FieldValues>({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit as SubmitHandler<T>)}>
           {fields.map((field) => {
             const fieldName = String(field.name) as Path<T>;
             const error = errors[String(field.name)];

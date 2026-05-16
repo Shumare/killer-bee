@@ -15,11 +15,11 @@
     "test": "npm run test --workspaces --if-present",
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write \"**/*.{ts,tsx,json,yml,yaml}\"",
-    "prepare": "husky install"
+    "prepare": "node -e \"if(process.env.NODE_ENV!=='production')require('child_process').execSync('husky install',{stdio:'inherit'})\" || true"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "concurrently": "^8.2.2",
     "eslint": "^8.57.0",
     "eslint-config-airbnb-base": "^15.0.0",

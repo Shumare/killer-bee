@@ -43,7 +43,7 @@ export function authMiddleware(
   }
 
   try {
-    const payload = jwt.verify(token, secret) as JwtPayload;
+    const payload = jwt.verify(token, secret) as unknown as JwtPayload;
     req.user = payload;
     next();
   } catch {

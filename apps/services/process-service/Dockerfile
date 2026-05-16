@@ -1,11 +1,17 @@
 FROM node:20-alpine AS base
 WORKDIR /app
 COPY package.json ./
+COPY packages/crypto/package.json ./packages/crypto/
 COPY packages/shared/package.json ./packages/shared/
+COPY apps/frontend/package.json ./apps/frontend/
+COPY apps/services/auth-service/package.json ./apps/services/auth-service/
+COPY apps/services/model-service/package.json ./apps/services/model-service/
+COPY apps/services/ingredient-service/package.json ./apps/services/ingredient-service/
 COPY apps/services/process-service/package.json ./apps/services/process-service/
+COPY apps/services/test-service/package.json ./apps/services/test-service/
 
 FROM base AS deps
-RUN npm install --workspace=apps/services/process-service --workspace=packages/shared
+RUN npm install --workspace=apps/services/process-service --workspace=packages/shared --legacy-peer-deps
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules

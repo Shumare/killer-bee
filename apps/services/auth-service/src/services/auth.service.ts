@@ -82,7 +82,7 @@ export class AuthService {
   async refreshToken(token: string): Promise<{ accessToken: string }> {
     let decoded: JwtPayload;
     try {
-      decoded = jwt.verify(token, getJwtRefreshSecret()) as JwtPayload;
+      decoded = jwt.verify(token, getJwtRefreshSecret()) as unknown as JwtPayload;
     } catch {
       const err = new Error('Invalid or expired refresh token');
       (err as NodeJS.ErrnoException).code = 'INVALID_REFRESH_TOKEN';
@@ -104,7 +104,7 @@ export class AuthService {
 
   async validateToken(token: string): Promise<JwtPayload> {
     try {
-      return jwt.verify(token, getJwtSecret()) as JwtPayload;
+      return jwt.verify(token, getJwtSecret()) as unknown as JwtPayload;
     } catch {
       const err = new Error('Invalid or expired token');
       (err as NodeJS.ErrnoException).code = 'INVALID_TOKEN';
