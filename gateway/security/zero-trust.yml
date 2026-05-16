@@ -1,0 +1,29 @@
+http:
+  middlewares:
+    zero-trust:
+      chain:
+        middlewares:
+          - verify-token
+          - check-permissions
+          - audit-log
+
+    verify-token:
+      forwardAuth:
+        address: "http://auth-service:3001/api/auth/verify"
+        authResponseHeaders:
+          - "X-User-Id"
+          - "X-User-Role"
+
+    check-permissions:
+      plugin:
+        rbac:
+          deny-by-default: true
+          rules:
+            - path: "/api/users/*"
+              roles: ["user", "admin"]
+            - path: "/api/freezbe/*"
+              roles: ["user", "admin"]
+            - path: "/api/ingredients/*"
+              roles: ["admin"]
+            - path: "/api/processes/*"
+              roles: ["user", "admin"]

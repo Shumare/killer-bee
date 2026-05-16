@@ -15,7 +15,8 @@ export default function useUser(userId: number) {
       try {
         const response = await getUser(userId)
         setUser(mapUserResponseToUser(response))
-      } catch {
+      } catch (err) {
+        console.error(`[useUser] Erreur chargement utilisateur ${userId}`, err)
         setHasError(true)
       } finally {
         setIsLoading(false)

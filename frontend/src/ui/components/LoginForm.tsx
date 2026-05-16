@@ -17,7 +17,7 @@ export default function LoginForm() {
       <Input name="email" type="email" value={email} onChange={setEmail} placeholder="Email" />
       <Input name="password" type="password" value={password} onChange={setPassword} placeholder="Mot de passe" />
       {hasError && <p>Identifiants invalides</p>}
-      <Button type="submit" label="Se connecter" onClick={handleSubmit} disabled={isLoading} />
+      <Button type="submit" label="Se connecter" disabled={isLoading} />
     </form>
   )
 }

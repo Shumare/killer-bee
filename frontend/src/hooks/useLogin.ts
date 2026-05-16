@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { login as loginApi } from '../api/auth.api'
 import type { LoginRequestDTO } from '../dto/auth.dto'
 import { mapLoginResponseToSession, mapLoginResponseToUser } from '../mappers/auth.mapper'
+import { useAuthStore } from '../store/auth.store'
 
 export default function useLogin() {
+  const { setUser, setSession } = useAuthStore()
   const [isLoading, setIsLoading] = useState(false)
   const [hasError, setHasError] = useState(false)
 
@@ -15,8 +17,10 @@ export default function useLogin() {
       const response = await loginApi(credentials)
       const user = mapLoginResponseToUser(response)
       const session = mapLoginResponseToSession(response)
-      return { user, session }
-    } catch {
+      setUser(user)
+      setSession(session)
+    } catch (err) {
+      console.error('[useLogin] Échec de la connexion', err)
       setHasError(true)
     } finally {
       setIsLoading(false)

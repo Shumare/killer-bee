@@ -1,16 +1,11 @@
 http:
   services:
-    auth-service:
+    backend:
       loadBalancer:
         servers:
-          - url: "http://auth-service:3001"
+          - url: "http://backend:3000"
 
-    user-service:
+    frontend:
       loadBalancer:
         servers:
-          - url: "http://user-service:3002"
-
-    product-service:
-      loadBalancer:
-        servers:
-          - url: "http://product-service:3003"
+          - url: "http://frontend:80"

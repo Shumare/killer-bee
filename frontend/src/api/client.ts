@@ -1,16 +1,22 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000'
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? ''
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const { headers: extraHeaders, ...restOptions } = options
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(extraHeaders as Record<string, string>),
     },
-    ...options,
+    ...restOptions,
   })
 
   if (!response.ok) {
+    console.error(`[API] ${options.method ?? 'GET'} ${path} — HTTP ${response.status}`)
     throw new Error(`HTTP ${response.status}`)
+  }
+
+  if (response.status === 204 || response.headers.get('content-length') === '0') {
+    return undefined as unknown as T
   }
 
   return response.json() as Promise<T>

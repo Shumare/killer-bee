@@ -1,25 +1,21 @@
 http:
   routers:
-    auth-router:
-      rule: "PathPrefix(`/api/auth`)"
-      service: auth-service
+    api-router:
+      rule: "PathPrefix(`/api`)"
+      service: backend
       middlewares:
         - rate-limit
         - secure-headers
+      entryPoints:
+        - websecure
       tls: {}
 
-    user-router:
-      rule: "PathPrefix(`/api/users`)"
-      service: user-service
+    frontend-router:
+      rule: "PathPrefix(`/`)"
+      service: frontend
       middlewares:
-        - auth-check
         - secure-headers
-      tls: {}
-
-    product-router:
-      rule: "PathPrefix(`/api/products`)"
-      service: product-service
-      middlewares:
-        - auth-check
-        - secure-headers
+        - compress
+      entryPoints:
+        - websecure
       tls: {}

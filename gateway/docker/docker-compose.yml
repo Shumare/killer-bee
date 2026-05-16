@@ -17,41 +17,25 @@ services:
     networks:
       - gateway
 
-  auth-service:
+  backend:
     build:
       context: ../../backend
-      dockerfile: Dockerfile
-    container_name: auth-service
+    container_name: killer-bee-backend
     environment:
-      - PORT=3001
-      - DATABASE_URL=${DATABASE_URL}
+      - NODE_ENV=production
+      - PORT=3000
       - JWT_SECRET=${JWT_SECRET}
     networks:
       - gateway
-
-  user-service:
-    build:
-      context: ../../backend
-      dockerfile: Dockerfile
-    container_name: user-service
-    environment:
-      - PORT=3002
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
-    networks:
-      - gateway
+    restart: unless-stopped
 
   frontend:
     build:
       context: ../../frontend
-      dockerfile: Dockerfile
-    container_name: frontend
+    container_name: killer-bee-frontend
     networks:
       - gateway
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.frontend.tls=true"
+    restart: unless-stopped
 
 networks:
   gateway:
