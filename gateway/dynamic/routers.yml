@@ -1,0 +1,25 @@
+http:
+  routers:
+    auth-router:
+      rule: "PathPrefix(`/api/auth`)"
+      service: auth-service
+      middlewares:
+        - rate-limit
+        - secure-headers
+      tls: {}
+
+    user-router:
+      rule: "PathPrefix(`/api/users`)"
+      service: user-service
+      middlewares:
+        - auth-check
+        - secure-headers
+      tls: {}
+
+    product-router:
+      rule: "PathPrefix(`/api/products`)"
+      service: product-service
+      middlewares:
+        - auth-check
+        - secure-headers
+      tls: {}
