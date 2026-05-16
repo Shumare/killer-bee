@@ -17,6 +17,10 @@ export function updateIngredient(id: number, body: UpdateIngredientDTO): Promise
   return put<IngredientDTO>(`/api/ingredients/${id}`, body)
 }
 
+export function searchIngredients(nom: string): Promise<IngredientDTO[]> {
+  return get<IngredientDTO[]>(`/api/ingredients/search?nom=${encodeURIComponent(nom)}`)
+}
+
 export function deleteIngredient(id: number): Promise<void> {
   return del<void>(`/api/ingredients/${id}`)
 }

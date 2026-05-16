@@ -28,6 +28,11 @@ export const ProcessService = {
     return mapProcessToResponse(mapRecordToProcess(record))
   },
 
+  async search(nom: string): Promise<ProcessResponseDTO[]> {
+    const records = await ProcessRepository.search(nom)
+    return records.map(r => mapProcessToResponse(mapRecordToProcess(r)))
+  },
+
   async delete(id: number): Promise<void> {
     await ProcessRepository.delete(id)
   },

@@ -13,6 +13,12 @@ export const ProcessController = {
     res.json(item)
   },
 
+  async search(req: Request, res: Response): Promise<void> {
+    const nom = String(req.query.nom ?? '')
+    const items = await ProcessService.search(nom)
+    res.json(items)
+  },
+
   async create(req: Request, res: Response): Promise<void> {
     const item = await ProcessService.create(req.body)
     res.status(201).json(item)

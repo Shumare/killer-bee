@@ -17,6 +17,10 @@ export function updateFreezebe(id: number, body: UpdateFreezebeDTO): Promise<Fre
   return put<FreezebeDTO>(`/api/freezbe/${id}`, body)
 }
 
+export function searchFreezebes(nom: string): Promise<FreezebeDTO[]> {
+  return get<FreezebeDTO[]>(`/api/freezbe/search?nom=${encodeURIComponent(nom)}`)
+}
+
 export function deleteFreezebe(id: number): Promise<void> {
   return del<void>(`/api/freezbe/${id}`)
 }

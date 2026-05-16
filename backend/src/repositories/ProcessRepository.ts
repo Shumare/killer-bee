@@ -1,4 +1,4 @@
-import { findAllProcesses, findProcessById, findProcessesByFreezebeId, createProcess, updateProcess, deleteProcess } from '../mock-data/process.mock'
+import { findAllProcesses, findProcessById, findProcessesByFreezebeId, findProcessesByNom, createProcess, updateProcess, deleteProcess } from '../mock-data/process.mock'
 import type { ProcessRecord } from '../mock-data/process.mock'
 
 export const ProcessRepository = {
@@ -12,6 +12,10 @@ export const ProcessRepository = {
 
   async findByFreezebeId(freezbeId: number): Promise<ProcessRecord[]> {
     return findProcessesByFreezebeId(freezbeId)
+  },
+
+  async search(nom: string): Promise<ProcessRecord[]> {
+    return findProcessesByNom(nom)
   },
 
   async create(data: Omit<ProcessRecord, 'id'>): Promise<ProcessRecord> {

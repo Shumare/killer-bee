@@ -17,6 +17,10 @@ export function updateProcess(id: number, body: UpdateProcessDTO): Promise<Proce
   return put<ProcessDTO>(`/api/processes/${id}`, body)
 }
 
+export function searchProcesses(nom: string): Promise<ProcessDTO[]> {
+  return get<ProcessDTO[]>(`/api/processes/search?nom=${encodeURIComponent(nom)}`)
+}
+
 export function deleteProcess(id: number): Promise<void> {
   return del<void>(`/api/processes/${id}`)
 }

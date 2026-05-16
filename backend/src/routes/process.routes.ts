@@ -5,6 +5,7 @@ import { asyncHandler } from '../utils/asyncHandler'
 const router = Router()
 
 router.get('/', asyncHandler(ProcessController.listAll))
+router.get('/search', asyncHandler(ProcessController.search))
 router.get('/:id', asyncHandler(ProcessController.getById))
 router.post('/', asyncHandler(ProcessController.create))
 router.put('/:id', asyncHandler(ProcessController.update))

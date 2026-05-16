@@ -47,6 +47,10 @@ export function findProcessesByFreezebeId(freezbeId: number): ProcessRecord[] {
   return processes.filter(p => p.freezbeId === freezbeId)
 }
 
+export function findProcessesByNom(nom: string): ProcessRecord[] {
+  return processes.filter(p => p.nom.toLowerCase().includes(nom.toLowerCase()))
+}
+
 export function createProcess(data: Omit<ProcessRecord, 'id'>): ProcessRecord {
   const record: ProcessRecord = { ...data, id: nextId++ }
   processes.push(record)
