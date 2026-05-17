@@ -2,23 +2,31 @@ import { useAuthStore } from '../../store/auth.store'
 import { useRouter } from '../../store/router.store'
 import type { Page } from '../../store/router.store'
 import useLogout from '../../hooks/useLogout'
+import { isAuthorized, type Role } from '../../security/auth.guard'
 import FreezebePage from './FreezebePage'
 import IngredientPage from './IngredientPage'
 import ProcessPage from './ProcessPage'
 import ProfilePage from './ProfilePage'
 
-const navItems: { label: string; page: Page }[] = [
-  { label: 'Accueil', page: 'dashboard' },
-  { label: 'Modèles Freezbe', page: 'freezbe' },
-  { label: 'Ingrédients', page: 'ingredients' },
-  { label: 'Procédés', page: 'processes' },
-  { label: 'Profil', page: 'profile' },
+const navItems: { label: string; page: Page; allowedRoles: Role[] }[] = [
+  { label: 'Accueil', page: 'dashboard', allowedRoles: ['guest', 'user', 'admin'] },
+  { label: 'Modèles Freezbe', page: 'freezbe', allowedRoles: ['user', 'admin'] },
+  { label: 'Ingrédients', page: 'ingredients', allowedRoles: ['user', 'admin'] },
+  { label: 'Procédés', page: 'processes', allowedRoles: ['user', 'admin'] },
+  { label: 'Profil', page: 'profile', allowedRoles: ['user', 'admin'] },
 ]
 
 export default function DashboardPage() {
   const { user } = useAuthStore()
   const { logout, isLoading: loggingOut } = useLogout()
   const { currentPage, navigate } = useRouter()
+
+  const visibleNav = navItems.filter(({ allowedRoles }) => isAuthorized(user, allowedRoles))
+
+  function guardedNavigate(page: Page, allowedRoles: Role[]) {
+    if (!isAuthorized(user, allowedRoles)) return
+    navigate(page)
+  }
 
   return (
     <div className="app-shell">

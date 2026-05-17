@@ -1,28 +1,21 @@
 import { useEffect, useState } from 'react'
-import {
-  getAllProcesses,
-  createProcess,
-  updateProcess,
-  deleteProcess,
-} from '../api/process.api'
+import { normalizeSuccess, normalizeFailure, normalizePending, type NormalizedResponse } from '@killer-bee/middleware-local'
+import { getAllProcesses, createProcess, updateProcess, deleteProcess } from '../api/process.api'
 import type { ProcessDTO, CreateProcessDTO, UpdateProcessDTO } from '../dto/process.dto'
 
 export default function useProcesses() {
   const [processes, setProcesses] = useState<ProcessDTO[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [hasError, setHasError] = useState(false)
+  const [state, setState] = useState<NormalizedResponse<ProcessDTO[]>>(normalizePending())
 
   async function load() {
-    setIsLoading(true)
-    setHasError(false)
+    setState(normalizePending())
     try {
       const data = await getAllProcesses()
       setProcesses(data)
+      setState(normalizeSuccess(data))
     } catch (err) {
       console.error('[useProcesses] Erreur lors du chargement', err)
-      setHasError(true)
-    } finally {
-      setIsLoading(false)
+      setState(normalizeFailure((err as Error).message ?? 'Erreur de chargement'))
     }
   }
 
@@ -45,5 +38,14 @@ export default function useProcesses() {
 
   useEffect(() => { load() }, [])
 
-  return { processes, isLoading, hasError, create, update, remove, reload: load }
+  return {
+    processes,
+    isLoading: state.status === 'pending',
+    hasError: state.status === 'failure',
+    errorMessage: state.error,
+    create,
+    update,
+    remove,
+    reload: load,
+  }
 }

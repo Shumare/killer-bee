@@ -1,8 +1,11 @@
 import { Router } from 'express'
 import { ProcessController } from '../controllers/ProcessController'
 import { asyncHandler } from '../utils/asyncHandler'
+import { authMiddleware } from '../middlewares/auth.middleware'
 
 const router = Router()
+
+router.use(authMiddleware)
 
 router.get('/', asyncHandler(ProcessController.listAll))
 router.get('/search', asyncHandler(ProcessController.search))
