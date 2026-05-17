@@ -1,0 +1,11 @@
+http:
+  services:
+    backend:
+      loadBalancer:
+        servers:
+          - url: "http://backend:3000"
+
+    frontend:
+      loadBalancer:
+        servers:
+          - url: "http://frontend:80"
