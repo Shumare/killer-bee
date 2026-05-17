@@ -13,15 +13,6 @@ function validate(form: CreateIngredientDTO): FormErrors<Fields> {
   }
 }
 
-const errorStyle = { color: '#c00', fontSize: 12, marginTop: 2 }
-const inputStyle = (hasError: boolean): React.CSSProperties => ({
-  padding: '6px 10px',
-  border: `1px solid ${hasError ? '#c00' : '#ccc'}`,
-  borderRadius: 4,
-  width: '100%',
-  boxSizing: 'border-box',
-})
-
 export default function IngredientPage() {
   const { ingredients, isLoading, hasError, create, update, remove } = useIngredients()
   const [form, setForm] = useState<CreateIngredientDTO>(emptyForm)
@@ -68,67 +59,72 @@ export default function IngredientPage() {
 
   return (
     <div>
-      <h2>Ingrédients</h2>
+      <h2 className="page-title">Ingrédients</h2>
+      <p className="page-description">Ajoute et organise les ingrédients de tes modèles Freezbe.</p>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 24, maxWidth: 400 }}>
+      <div className="search-row">
         <input
+          className="input"
           placeholder="Rechercher par nom..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={inputStyle(false)}
         />
-        {search && <button onClick={() => setSearch('')} style={{ padding: '6px 12px', cursor: 'pointer' }}>✕</button>}
+        {search && (
+          <button type="button" className="button-secondary button-small" onClick={() => setSearch('')}>
+            ✕
+          </button>
+        )}
       </div>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 400, marginBottom: 32, padding: 16, border: '1px solid #e0e0e0', borderRadius: 6, background: editing ? '#fffbf0' : '#fafafa' }}>
-        <strong style={{ fontSize: 14 }}>{editing ? `Modifier : ${editing.nom}` : 'Nouvel ingrédient'}</strong>
+      <form className="form-panel" onSubmit={handleSubmit}>
+        <div className="form-heading">{editing ? `Modifier : ${editing.nom}` : 'Nouvel ingrédient'}</div>
 
-        <div>
-          <input
-            placeholder="Nom *"
-            value={form.nom}
-            onChange={(e) => set('nom', e.target.value)}
-            style={inputStyle(!!errors.nom)}
-          />
-          {errors.nom && <p style={errorStyle}>{errors.nom}</p>}
+        <div className="form-grid">
+          <div className="form-field">
+            <label className="label">Nom *</label>
+            <input className="input" placeholder="Nom" value={form.nom} onChange={(e) => set('nom', e.target.value)} />
+            {errors.nom && <p className="field-error">{errors.nom}</p>}
+          </div>
+
+          <div className="form-field">
+            <label className="label">Description</label>
+            <textarea className="textarea" placeholder="Description" value={form.description} onChange={(e) => set('description', e.target.value)} rows={3} />
+          </div>
         </div>
 
-        <div>
-          <textarea
-            placeholder="Description"
-            value={form.description}
-            onChange={(e) => set('description', e.target.value)}
-            rows={3}
-            style={{ ...inputStyle(false), resize: 'vertical' }}
-          />
-        </div>
-
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button type="submit" disabled={submitting} style={{ padding: '8px 16px', cursor: 'pointer' }}>
+        <div className="actions-row">
+          <button type="submit" className="button-primary">
             {submitting ? '...' : editing ? 'Mettre à jour' : '+ Ajouter'}
           </button>
           {editing && (
-            <button type="button" onClick={cancelEdit} style={{ padding: '8px 16px', cursor: 'pointer', background: 'none', border: '1px solid #ccc', borderRadius: 4 }}>
+            <button type="button" className="button-secondary" onClick={cancelEdit}>
               Annuler
             </button>
           )}
         </div>
       </form>
 
-      {isLoading && <p style={{ color: '#666' }}>Chargement...</p>}
-      {hasError && <p style={{ color: '#c00' }}>Erreur lors du chargement.</p>}
-      {!isLoading && displayed.length === 0 && <p style={{ color: '#666' }}>Aucun résultat.</p>}
+      {isLoading && <p className="section-note">Chargement...</p>}
+      {hasError && <p className="field-error">Erreur lors du chargement.</p>}
+      {!isLoading && displayed.length === 0 && <p className="section-note">Aucun résultat.</p>}
 
-      <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <ul className="card-list">
         {displayed.map((i) => (
-          <li key={i.id} style={{ border: `1px solid ${editing?.id === i.id ? '#f0a500' : '#eee'}`, borderRadius: 6, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <li key={i.id} className={`card ${editing?.id === i.id ? 'active' : ''}`}>
             <div>
-              <strong>{i.nom}</strong>
-              {i.description && <p style={{ margin: '4px 0 0', color: '#666', fontSize: 14 }}>{i.description}</p>}
+              <div className="card-title">
+                <strong>{i.nom}</strong>
+              </div>
+              {i.description && <p className="card-meta">{i.description}</p>}
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => startEdit(i)} style={{ padding: '4px 10px', cursor: 'pointer', border: '1px solid #555', borderRadius: 4, background: 'none' }}>Modifier</button>
-              <button onClick={() => remove(i.id)} style={{ padding: '4px 10px', cursor: 'pointer', color: '#c00', border: '1px solid #c00', borderRadius: 4, background: 'none' }}>Supprimer</button>
+
+            <div className="card-actions">
+              <button type="button" className="button-secondary button-small" onClick={() => startEdit(i)}>
+                Modifier
+              </button>
+              <button type="button" className="button-danger button-small" onClick={() => remove(i.id)}>
+                Supprimer
+              </button>
             </div>
           </li>
         ))}

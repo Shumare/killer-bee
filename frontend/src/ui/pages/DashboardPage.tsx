@@ -21,70 +21,60 @@ export default function DashboardPage() {
   const { currentPage, navigate } = useRouter()
 
   return (
-    <div style={{ fontFamily: 'sans-serif', maxWidth: 900, margin: '0 auto', padding: 24 }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: 16, marginBottom: 24 }}>
-        <h1 style={{ margin: 0 }}>Killer Bee</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <span>Bonjour, <strong>{user?.name}</strong></span>
-          <button onClick={logout} disabled={loggingOut} style={{ padding: '6px 14px', cursor: 'pointer' }}>
-            {loggingOut ? 'Déconnexion...' : 'Se déconnecter'}
-          </button>
-        </div>
-      </header>
+    <div className="app-shell">
+      <div className="page-shell">
+        <header className="page-header">
+          <div>
+            <p className="badge">Killer Bee</p>
+            <h1>Killer Bee</h1>
+            <p className="page-description">Tableau de bord : clair, rapide et puissant.</p>
+          </div>
+          <div className="header-actions">
+            <span className="badge">Bonjour, {user?.name}</span>
+            <button className="button-secondary" onClick={logout} disabled={loggingOut}>
+              {loggingOut ? 'Déconnexion...' : 'Se déconnecter'}
+            </button>
+          </div>
+        </header>
 
-      <nav style={{ display: 'flex', gap: 8, marginBottom: 32, flexWrap: 'wrap' }}>
-        {navItems.map(({ label, page }) => (
-          <button
-            key={page}
-            onClick={() => navigate(page)}
-            style={{
-              padding: '6px 16px',
-              cursor: 'pointer',
-              borderRadius: 4,
-              border: '1px solid #ccc',
-              background: currentPage === page ? '#333' : 'transparent',
-              color: currentPage === page ? '#fff' : '#333',
-              fontWeight: currentPage === page ? 600 : 400,
-            }}
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
+        <nav className="nav-bar">
+          {navItems.map(({ label, page }) => (
+            <button key={page} type="button" onClick={() => navigate(page)} className={`nav-button ${currentPage === page ? 'active' : ''}`}>
+              {label}
+            </button>
+          ))}
+        </nav>
 
-      <main>
-        {currentPage === 'dashboard' && <DashboardOverview />}
-        {currentPage === 'freezbe' && <FreezebePage />}
-        {currentPage === 'ingredients' && <IngredientPage />}
-        {currentPage === 'processes' && <ProcessPage />}
-        {currentPage === 'profile' && <ProfilePage />}
-      </main>
+        <main className="main-content">
+          {currentPage === 'dashboard' && <DashboardOverview navigate={navigate} />}
+          {currentPage === 'freezbe' && <FreezebePage />}
+          {currentPage === 'ingredients' && <IngredientPage />}
+          {currentPage === 'processes' && <ProcessPage />}
+          {currentPage === 'profile' && <ProfilePage />}
+        </main>
+      </div>
     </div>
   )
 }
 
-function DashboardOverview() {
-  const { navigate } = useRouter()
+function DashboardOverview({ navigate }: { navigate: (page: Page) => void }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <h2>Bienvenue</h2>
-      <p style={{ color: '#666' }}>Sélectionnez une section pour commencer.</p>
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+    <section>
+      <h2 className="page-title">Bienvenue</h2>
+      <p className="page-description">Prêt à gérer les modèles, ingrédients et procédés.</p>
+
+      <div className="section-grid">
         {[
-          { page: 'freezbe' as const, label: 'Modèles Freezbe', desc: 'Gérez vos modèles : nom, prix, gamme, ingrédients, grammage.' },
-          { page: 'ingredients' as const, label: 'Ingrédients', desc: 'Gérez les ingrédients utilisés dans vos modèles.' },
-          { page: 'processes' as const, label: 'Procédés', desc: 'Définissez les étapes et contrôles de chaque procédé.' },
+          { page: 'freezbe' as const, label: 'Modèles Freezbe', desc: 'Gère les recettes, prix, gammes et rattachements.' },
+          { page: 'ingredients' as const, label: 'Ingrédients', desc: 'Ajoute, modifie et consulte la liste des ingrédients.' },
+          { page: 'processes' as const, label: 'Procédés', desc: 'Crée des flux de fabrication complets et structurés.' },
         ].map(({ page, label, desc }) => (
-          <div
-            key={page}
-            onClick={() => navigate(page)}
-            style={{ border: '1px solid #ddd', borderRadius: 8, padding: '16px 20px', cursor: 'pointer', flex: '1 1 200px', minWidth: 180 }}
-          >
+          <div key={page} className="section-card" onClick={() => navigate(page)}>
             <strong>{label}</strong>
-            <p style={{ margin: '6px 0 0', color: '#666', fontSize: 14 }}>{desc}</p>
+            <p>{desc}</p>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   )
 }

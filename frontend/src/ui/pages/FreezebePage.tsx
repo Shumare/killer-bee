@@ -17,12 +17,6 @@ function validate(form: CreateFreezebeDTO): FormErrors<Fields> {
   }
 }
 
-const errorStyle = { color: '#c00', fontSize: 12, marginTop: 2 }
-
-function fieldStyle(hasError: boolean): React.CSSProperties {
-  return { padding: '6px 10px', border: `1px solid ${hasError ? '#c00' : '#ccc'}`, borderRadius: 4, width: '100%', boxSizing: 'border-box' }
-}
-
 export default function FreezebePage() {
   const { freezebes, isLoading, hasError, create, update, remove } = useFreezebes()
   const { ingredients } = useIngredients()
@@ -79,109 +73,126 @@ export default function FreezebePage() {
 
   return (
     <div>
-      <h2>Modèles Freezbe</h2>
+      <h2 className="page-title">Modèles Freezbe</h2>
+      <p className="page-description">Gère tes recettes et attribue les ingrédients nécessaires à chaque modèle.</p>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 24, maxWidth: 440 }}>
+      <div className="search-row">
         <input
+          className="input"
           placeholder="Rechercher par nom ou gamme..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={fieldStyle(false)}
         />
-        {search && <button onClick={() => setSearch('')} style={{ padding: '6px 12px', cursor: 'pointer' }}>✕</button>}
+        {search && (
+          <button type="button" className="button-secondary button-small" onClick={() => setSearch('')}>
+            ✕
+          </button>
+        )}
       </div>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 440, marginBottom: 32, padding: 16, border: '1px solid #e0e0e0', borderRadius: 6, background: editing ? '#fffbf0' : '#fafafa' }}>
-        <strong style={{ fontSize: 14 }}>{editing ? `Modifier : ${editing.nom}` : 'Nouveau modèle'}</strong>
+      <form className="form-panel" onSubmit={handleSubmit}>
+        <div className="form-heading">{editing ? `Modifier : ${editing.nom}` : 'Nouveau modèle'}</div>
 
-        <div>
-          <input placeholder="Nom *" value={form.nom} onChange={(e) => set('nom', e.target.value)} style={fieldStyle(!!errors.nom)} />
-          {errors.nom && <p style={errorStyle}>{errors.nom}</p>}
-        </div>
-
-        <div>
-          <textarea placeholder="Description" value={form.description} onChange={(e) => set('description', e.target.value)} rows={2} style={{ ...fieldStyle(false), resize: 'vertical' }} />
-        </div>
-
-        <div style={{ display: 'flex', gap: 8 }}>
-          <div style={{ flex: 1 }}>
-            <input
-              placeholder="Prix UHT (€) *"
-              type="number"
-              min={0}
-              step={0.01}
-              value={form.pUHT || ''}
-              onChange={(e) => set('pUHT', parseFloat(e.target.value) || 0)}
-              style={fieldStyle(!!errors.pUHT)}
-            />
-            {errors.pUHT && <p style={errorStyle}>{errors.pUHT}</p>}
+        <div className="form-grid">
+          <div className="form-field">
+            <label className="label">Nom *</label>
+            <input className="input" placeholder="Nom" value={form.nom} onChange={(e) => set('nom', e.target.value)} />
+            {errors.nom && <p className="field-error">{errors.nom}</p>}
           </div>
-          <div style={{ flex: 1 }}>
-            <input
-              placeholder="Grammage (g) *"
-              type="number"
-              min={1}
-              step={1}
-              value={form.grammage || ''}
-              onChange={(e) => set('grammage', Math.round(parseFloat(e.target.value)) || 0)}
-              style={fieldStyle(!!errors.grammage)}
-            />
-            {errors.grammage && <p style={errorStyle}>{errors.grammage}</p>}
+
+          <div className="form-field">
+            <label className="label">Description</label>
+            <textarea className="textarea" placeholder="Description" value={form.description} onChange={(e) => set('description', e.target.value)} rows={2} />
           </div>
-        </div>
 
-        <div>
-          <input placeholder="Gamme *" value={form.gamme} onChange={(e) => set('gamme', e.target.value)} style={fieldStyle(!!errors.gamme)} />
-          {errors.gamme && <p style={errorStyle}>{errors.gamme}</p>}
-        </div>
-
-        {ingredients.length > 0 && (
-          <fieldset style={{ border: '1px solid #ccc', borderRadius: 4, padding: '8px 12px' }}>
-            <legend style={{ fontSize: 13, color: '#555' }}>Ingrédients</legend>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {ingredients.map((i) => (
-                <label key={i.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14, cursor: 'pointer' }}>
-                  <input type="checkbox" checked={form.ingredientIds.includes(i.id)} onChange={() => toggleIngredient(i.id)} />
-                  {i.nom}
-                </label>
-              ))}
+          <div className="form-row">
+            <div className="flex-half form-field">
+              <label className="label">Prix UHT (€) *</label>
+              <input
+                className="input"
+                placeholder="Prix UHT"
+                type="number"
+                min={0}
+                step={0.01}
+                value={form.pUHT || ''}
+                onChange={(e) => set('pUHT', parseFloat(e.target.value) || 0)}
+              />
+              {errors.pUHT && <p className="field-error">{errors.pUHT}</p>}
             </div>
-          </fieldset>
-        )}
+            <div className="flex-half form-field">
+              <label className="label">Grammage (g) *</label>
+              <input
+                className="input"
+                placeholder="Grammage"
+                type="number"
+                min={1}
+                step={1}
+                value={form.grammage || ''}
+                onChange={(e) => set('grammage', Math.round(parseFloat(e.target.value)) || 0)}
+              />
+              {errors.grammage && <p className="field-error">{errors.grammage}</p>}
+            </div>
+          </div>
 
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button type="submit" disabled={submitting} style={{ padding: '8px 16px', cursor: 'pointer' }}>
+          <div className="form-field">
+            <label className="label">Gamme *</label>
+            <input className="input" placeholder="Gamme" value={form.gamme} onChange={(e) => set('gamme', e.target.value)} />
+            {errors.gamme && <p className="field-error">{errors.gamme}</p>}
+          </div>
+
+          {ingredients.length > 0 && (
+            <fieldset className="fieldset">
+              <legend className="legend">Ingrédients</legend>
+              <div className="ingredient-list">
+                {ingredients.map((i) => (
+                  <label key={i.id} className="checkbox-label">
+                    <input type="checkbox" checked={form.ingredientIds.includes(i.id)} onChange={() => toggleIngredient(i.id)} />
+                    {i.nom}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
+        </div>
+
+        <div className="actions-row">
+          <button type="submit" className="button-primary">
             {submitting ? '...' : editing ? 'Mettre à jour' : '+ Ajouter'}
           </button>
           {editing && (
-            <button type="button" onClick={cancelEdit} style={{ padding: '8px 16px', cursor: 'pointer', background: 'none', border: '1px solid #ccc', borderRadius: 4 }}>
+            <button type="button" className="button-secondary" onClick={cancelEdit}>
               Annuler
             </button>
           )}
         </div>
       </form>
 
-      {isLoading && <p style={{ color: '#666' }}>Chargement...</p>}
-      {hasError && <p style={{ color: '#c00' }}>Erreur lors du chargement.</p>}
-      {!isLoading && displayed.length === 0 && <p style={{ color: '#666' }}>Aucun résultat.</p>}
+      {isLoading && <p className="section-note">Chargement...</p>}
+      {hasError && <p className="field-error">Erreur lors du chargement.</p>}
+      {!isLoading && displayed.length === 0 && <p className="section-note">Aucun résultat.</p>}
 
-      <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <ul className="card-list">
         {displayed.map((f) => {
           const linked = ingredients.filter((i) => f.ingredientIds.includes(i.id))
           return (
-            <li key={f.id} style={{ border: `1px solid ${editing?.id === f.id ? '#f0a500' : '#eee'}`, borderRadius: 6, padding: '10px 14px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
+            <li key={f.id} className={`card ${editing?.id === f.id ? 'active' : ''}`}>
+              <div>
+                <div className="card-title">
                   <strong>{f.nom}</strong>
-                  <span style={{ marginLeft: 8, fontSize: 13, color: '#888' }}>{f.gamme}</span>
-                  {f.description && <p style={{ margin: '4px 0 0', color: '#666', fontSize: 14 }}>{f.description}</p>}
-                  <p style={{ margin: '4px 0 0', fontSize: 13, color: '#555' }}>{f.pUHT.toFixed(2)} € — {f.grammage} g</p>
-                  {linked.length > 0 && <p style={{ margin: '4px 0 0', fontSize: 13, color: '#555' }}>Ingrédients : {linked.map((i) => i.nom).join(', ')}</p>}
+                  <span className="card-subtitle">{f.gamme}</span>
                 </div>
-                <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                  <button onClick={() => startEdit(f)} style={{ padding: '4px 10px', cursor: 'pointer', border: '1px solid #555', borderRadius: 4, background: 'none' }}>Modifier</button>
-                  <button onClick={() => remove(f.id)} style={{ padding: '4px 10px', cursor: 'pointer', color: '#c00', border: '1px solid #c00', borderRadius: 4, background: 'none' }}>Supprimer</button>
-                </div>
+                {f.description && <p className="card-meta">{f.description}</p>}
+                <p className="card-meta">{f.pUHT.toFixed(2)} € — {f.grammage} g</p>
+                {linked.length > 0 && <p className="card-meta">Ingrédients : {linked.map((i) => i.nom).join(', ')}</p>}
+              </div>
+
+              <div className="card-actions">
+                <button type="button" className="button-secondary button-small" onClick={() => startEdit(f)}>
+                  Modifier
+                </button>
+                <button type="button" className="button-danger button-small" onClick={() => remove(f.id)}>
+                  Supprimer
+                </button>
               </div>
             </li>
           )

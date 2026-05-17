@@ -16,12 +16,6 @@ function validate(form: CreateProcessDTO): FormErrors<Fields> {
   }
 }
 
-const errorStyle = { color: '#c00', fontSize: 12, marginTop: 2 }
-
-function fieldStyle(hasError: boolean): React.CSSProperties {
-  return { padding: '6px 10px', border: `1px solid ${hasError ? '#c00' : '#ccc'}`, borderRadius: 4, width: '100%', boxSizing: 'border-box' }
-}
-
 export default function ProcessPage() {
   const { processes, isLoading, hasError, create, update, remove } = useProcesses()
   const { freezebes } = useFreezebes()
@@ -52,7 +46,9 @@ export default function ProcessPage() {
   function startEdit(item: ProcessDTO) {
     setEditing(item)
     setForm({
-      nom: item.nom, description: item.description, freezbeId: item.freezbeId,
+      nom: item.nom,
+      description: item.description,
+      freezbeId: item.freezbeId,
       etapes: item.etapes.length ? [...item.etapes] : [''],
       validationsDeTests: item.validationsDeTests.length ? [...item.validationsDeTests] : [''],
       descriptionsDeControle: item.descriptionsDeControle.length ? [...item.descriptionsDeControle] : [''],
@@ -91,107 +87,119 @@ export default function ProcessPage() {
     ? processes.filter((p) => p.nom.toLowerCase().includes(search.toLowerCase()))
     : processes
 
-  const labelStyle: React.CSSProperties = { fontSize: 13, color: '#555', marginBottom: 2, display: 'block' }
-
   function ListEditor({ field, label }: { field: 'etapes' | 'validationsDeTests' | 'descriptionsDeControle'; label: string }) {
     const hasListError = field === 'etapes' && !!errors.etapes
     return (
-      <div>
-        <span style={{ ...labelStyle, color: hasListError ? '#c00' : '#555' }}>{label}{field === 'etapes' ? ' *' : ''}</span>
+      <div className="form-field">
+        <label className="label">{label}{field === 'etapes' ? ' *' : ''}</label>
         {form[field].map((val, idx) => (
-          <div key={idx} style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
+          <div key={idx} className="form-row">
             <input
+              className="input"
               value={val}
               onChange={(e) => setListItem(field, idx, e.target.value)}
-              style={{ ...fieldStyle(hasListError && idx === 0 && !val.trim()), flex: 1 }}
               placeholder={`${label} ${idx + 1}`}
             />
             {form[field].length > 1 && (
-              <button type="button" onClick={() => removeListItem(field, idx)} style={{ padding: '4px 8px', cursor: 'pointer', color: '#c00', border: '1px solid #c00', borderRadius: 4, background: 'none' }}>×</button>
+              <button type="button" className="button-danger button-small" onClick={() => removeListItem(field, idx)}>
+                ×
+              </button>
             )}
           </div>
         ))}
-        {hasListError && <p style={errorStyle}>{errors.etapes}</p>}
-        <button type="button" onClick={() => addListItem(field)} style={{ fontSize: 13, padding: '2px 8px', cursor: 'pointer' }}>+ Ajouter</button>
+        {hasListError && <p className="field-error">{errors.etapes}</p>}
+        <button type="button" className="button-secondary button-small" onClick={() => addListItem(field)}>
+          + Ajouter
+        </button>
       </div>
     )
   }
 
   return (
     <div>
-      <h2>Procédés de fabrication</h2>
+      <h2 className="page-title">Procédés de fabrication</h2>
+      <p className="page-description">Crée des procédures complètes avec étapes, validations et contrôles.</p>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 24, maxWidth: 480 }}>
+      <div className="search-row">
         <input
+          className="input"
           placeholder="Rechercher par nom..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={fieldStyle(false)}
         />
-        {search && <button onClick={() => setSearch('')} style={{ padding: '6px 12px', cursor: 'pointer' }}>✕</button>}
+        {search && (
+          <button type="button" className="button-secondary button-small" onClick={() => setSearch('')}>
+            ✕
+          </button>
+        )}
       </div>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 480, marginBottom: 32, padding: 16, border: '1px solid #e0e0e0', borderRadius: 6, background: editing ? '#fffbf0' : '#fafafa' }}>
-        <strong style={{ fontSize: 14 }}>{editing ? `Modifier : ${editing.nom}` : 'Nouveau procédé'}</strong>
+      <form className="form-panel" onSubmit={handleSubmit}>
+        <div className="form-heading">{editing ? `Modifier : ${editing.nom}` : 'Nouveau procédé'}</div>
 
-        <div>
-          <input placeholder="Nom *" value={form.nom} onChange={(e) => setField('nom', e.target.value)} style={fieldStyle(!!errors.nom)} />
-          {errors.nom && <p style={errorStyle}>{errors.nom}</p>}
+        <div className="form-grid">
+          <div className="form-field">
+            <label className="label">Nom *</label>
+            <input className="input" placeholder="Nom" value={form.nom} onChange={(e) => setField('nom', e.target.value)} />
+            {errors.nom && <p className="field-error">{errors.nom}</p>}
+          </div>
+
+          <div className="form-field">
+            <label className="label">Description</label>
+            <textarea className="textarea" placeholder="Description" value={form.description} onChange={(e) => setField('description', e.target.value)} rows={2} />
+          </div>
+
+          <div className="form-field">
+            <label className="label">Modèle Freezbe *</label>
+            <select className="select" value={form.freezbeId} onChange={(e) => setField('freezbeId', parseInt(e.target.value) || 0)}>
+              <option value={0}>— Choisir un modèle —</option>
+              {freezebes.map((f) => <option key={f.id} value={f.id}>{f.nom}</option>)}
+            </select>
+            {errors.freezbeId && <p className="field-error">{errors.freezbeId}</p>}
+          </div>
+
+          <ListEditor field="etapes" label="Étapes" />
+          <ListEditor field="validationsDeTests" label="Validations de tests" />
+          <ListEditor field="descriptionsDeControle" label="Descriptions de contrôle" />
         </div>
 
-        <div>
-          <textarea placeholder="Description" value={form.description} onChange={(e) => setField('description', e.target.value)} rows={2} style={{ ...fieldStyle(false), resize: 'vertical' }} />
-        </div>
-
-        <div>
-          <span style={labelStyle}>Modèle Freezbe *</span>
-          <select
-            value={form.freezbeId}
-            onChange={(e) => setField('freezbeId', parseInt(e.target.value) || 0)}
-            style={fieldStyle(!!errors.freezbeId)}
-          >
-            <option value={0}>— Choisir un modèle —</option>
-            {freezebes.map((f) => <option key={f.id} value={f.id}>{f.nom}</option>)}
-          </select>
-          {errors.freezbeId && <p style={errorStyle}>{errors.freezbeId}</p>}
-        </div>
-
-        <ListEditor field="etapes" label="Étapes" />
-        <ListEditor field="validationsDeTests" label="Validations de tests" />
-        <ListEditor field="descriptionsDeControle" label="Descriptions de contrôle" />
-
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button type="submit" disabled={submitting} style={{ padding: '8px 16px', cursor: 'pointer' }}>
+        <div className="actions-row">
+          <button type="submit" className="button-primary">
             {submitting ? '...' : editing ? 'Mettre à jour' : '+ Ajouter'}
           </button>
           {editing && (
-            <button type="button" onClick={cancelEdit} style={{ padding: '8px 16px', cursor: 'pointer', background: 'none', border: '1px solid #ccc', borderRadius: 4 }}>
+            <button type="button" className="button-secondary" onClick={cancelEdit}>
               Annuler
             </button>
           )}
         </div>
       </form>
 
-      {isLoading && <p style={{ color: '#666' }}>Chargement...</p>}
-      {hasError && <p style={{ color: '#c00' }}>Erreur lors du chargement.</p>}
-      {!isLoading && displayed.length === 0 && <p style={{ color: '#666' }}>Aucun résultat.</p>}
+      {isLoading && <p className="section-note">Chargement...</p>}
+      {hasError && <p className="field-error">Erreur lors du chargement.</p>}
+      {!isLoading && displayed.length === 0 && <p className="section-note">Aucun résultat.</p>}
 
-      <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <ul className="card-list">
         {displayed.map((p) => {
           const freezbe = freezebes.find((f) => f.id === p.freezbeId)
           return (
-            <li key={p.id} style={{ border: `1px solid ${editing?.id === p.id ? '#f0a500' : '#eee'}`, borderRadius: 6, padding: '10px 14px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
+            <li key={p.id} className={`card ${editing?.id === p.id ? 'active' : ''}`}>
+              <div>
+                <div className="card-title">
                   <strong>{p.nom}</strong>
-                  {freezbe && <span style={{ marginLeft: 8, fontSize: 13, color: '#888' }}>({freezbe.nom})</span>}
-                  {p.description && <p style={{ margin: '4px 0 0', color: '#666', fontSize: 14 }}>{p.description}</p>}
-                  {p.etapes.length > 0 && <p style={{ margin: '4px 0 0', fontSize: 13, color: '#555' }}>Étapes : {p.etapes.join(' → ')}</p>}
+                  {freezbe && <span className="card-subtitle">({freezbe.nom})</span>}
                 </div>
-                <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                  <button onClick={() => startEdit(p)} style={{ padding: '4px 10px', cursor: 'pointer', border: '1px solid #555', borderRadius: 4, background: 'none' }}>Modifier</button>
-                  <button onClick={() => remove(p.id)} style={{ padding: '4px 10px', cursor: 'pointer', color: '#c00', border: '1px solid #c00', borderRadius: 4, background: 'none' }}>Supprimer</button>
-                </div>
+                {p.description && <p className="card-meta">{p.description}</p>}
+                {p.etapes.length > 0 && <p className="card-meta">Étapes : {p.etapes.join(' → ')}</p>}
+              </div>
+
+              <div className="card-actions">
+                <button type="button" className="button-secondary button-small" onClick={() => startEdit(p)}>
+                  Modifier
+                </button>
+                <button type="button" className="button-danger button-small" onClick={() => remove(p.id)}>
+                  Supprimer
+                </button>
               </div>
             </li>
           )
