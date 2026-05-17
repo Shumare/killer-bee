@@ -1,0 +1,22 @@
+http:
+  middlewares:
+    secure-headers:
+      headers:
+        frameDeny: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+
+    auth-check:
+      forwardAuth:
+        address: "http://auth-service:3001/api/auth/verify"
+        authRequestHeaders:
+          - "Authorization"
+
+    compress:
+      compress: {}

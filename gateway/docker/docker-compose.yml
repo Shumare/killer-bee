@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ../traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ../dynamic:/etc/traefik/dynamic:ro
+      - ../certificates:/certificates
+      - ../logs:/logs
+    networks:
+      - gateway
+
+  backend:
+    build:
+      context: ../../backend
+    container_name: killer-bee-backend
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - gateway
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../../frontend
+    container_name: killer-bee-frontend
+    networks:
+      - gateway
+    restart: unless-stopped
+
+networks:
+  gateway:
+    driver: bridge

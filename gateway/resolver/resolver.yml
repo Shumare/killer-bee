@@ -1,0 +1,18 @@
+http:
+  routers:
+    resolver:
+      rule: "PathPrefix(`/resolve`)"
+      service: resolver-service
+      middlewares:
+        - auth-check
+        - secure-headers
+
+  services:
+    resolver-service:
+      loadBalancer:
+        servers:
+          - url: "http://auth-service:3001"
+        healthCheck:
+          path: /health
+          interval: "10s"
+          timeout: "3s"
