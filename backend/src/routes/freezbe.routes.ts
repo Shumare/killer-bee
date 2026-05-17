@@ -1,8 +1,11 @@
 import { Router } from 'express'
 import { FreezebeController } from '../controllers/FreezebeController'
 import { asyncHandler } from '../utils/asyncHandler'
+import { authMiddleware } from '../middlewares/auth.middleware'
 
 const router = Router()
+
+router.use(authMiddleware)
 
 router.get('/', asyncHandler(FreezebeController.listAll))
 router.get('/search', asyncHandler(FreezebeController.search))

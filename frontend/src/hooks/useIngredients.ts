@@ -1,28 +1,21 @@
 import { useEffect, useState } from 'react'
-import {
-  getAllIngredients,
-  createIngredient,
-  updateIngredient,
-  deleteIngredient,
-} from '../api/ingredient.api'
+import { normalizeSuccess, normalizeFailure, normalizePending, type NormalizedResponse } from '@killer-bee/middleware-local'
+import { getAllIngredients, createIngredient, updateIngredient, deleteIngredient } from '../api/ingredient.api'
 import type { IngredientDTO, CreateIngredientDTO, UpdateIngredientDTO } from '../dto/ingredient.dto'
 
 export default function useIngredients() {
   const [ingredients, setIngredients] = useState<IngredientDTO[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [hasError, setHasError] = useState(false)
+  const [state, setState] = useState<NormalizedResponse<IngredientDTO[]>>(normalizePending())
 
   async function load() {
-    setIsLoading(true)
-    setHasError(false)
+    setState(normalizePending())
     try {
       const data = await getAllIngredients()
       setIngredients(data)
+      setState(normalizeSuccess(data))
     } catch (err) {
       console.error('[useIngredients] Erreur lors du chargement', err)
-      setHasError(true)
-    } finally {
-      setIsLoading(false)
+      setState(normalizeFailure((err as Error).message ?? 'Erreur de chargement'))
     }
   }
 
@@ -45,5 +38,14 @@ export default function useIngredients() {
 
   useEffect(() => { load() }, [])
 
-  return { ingredients, isLoading, hasError, create, update, remove, reload: load }
+  return {
+    ingredients,
+    isLoading: state.status === 'pending',
+    hasError: state.status === 'failure',
+    errorMessage: state.error,
+    create,
+    update,
+    remove,
+    reload: load,
+  }
 }

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState } from 'react'
 import type { Session } from '../models/Session'
 import type { User } from '../models/User'
+import { setToken } from '../security/token.registry'
 
 type AuthState = {
   user: User | null
@@ -23,5 +24,10 @@ export function useAuthState() {
   const [session, setSession] = useState<Session | null>(null)
   const isAuthenticated = session !== null
 
-  return { user, session, isAuthenticated, setUser, setSession }
+  function handleSetSession(s: Session | null) {
+    setToken(s?.token ?? null)
+    setSession(s)
+  }
+
+  return { user, session, isAuthenticated, setUser, setSession: handleSetSession }
 }

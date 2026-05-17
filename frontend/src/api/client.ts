@@ -1,25 +1,41 @@
+import { encrypt, decrypt } from '../security/cipher'
+import { getToken } from '../security/token.registry'
+
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? ''
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const { headers: extraHeaders, ...restOptions } = options
+  const { headers: extraHeaders, body, ...restOptions } = options
+
+  const encryptedBody = body && typeof body === 'string' ? encrypt(body) : body
+  const token = getToken()
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(extraHeaders as Record<string, string>),
     },
+    body: encryptedBody,
     ...restOptions,
   })
 
   if (!response.ok) {
     console.error(`[API] ${options.method ?? 'GET'} ${path} — HTTP ${response.status}`)
-    throw new Error(`HTTP ${response.status}`)
+    try {
+      const ciphertext = await response.text()
+      const plaintext = decrypt(ciphertext)
+      const errorData = JSON.parse(plaintext) as { message?: string }
+      throw new Error(errorData.message ?? `HTTP ${response.status}`)
+    } catch {
+      throw new Error(`HTTP ${response.status}`)
+    }
   }
 
-  if (response.status === 204 || response.headers.get('content-length') === '0') {
-    return undefined as unknown as T
-  }
+  if (response.status === 204) return undefined as unknown as T
 
-  return response.json() as Promise<T>
+  const ciphertext = await response.text()
+  const plaintext = decrypt(ciphertext)
+  return JSON.parse(plaintext) as T
 }
 
 export function get<T>(path: string, headers?: HeadersInit): Promise<T> {
