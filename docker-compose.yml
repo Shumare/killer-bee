@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # ── Monolithe (conservé, désactivable quand les microservices seront stables) ──
   backend:
     build:
       context: ./backend
@@ -13,6 +14,71 @@ services:
       - app
     restart: unless-stopped
 
+  # ── Microservices ──────────────────────────────────────────────────────────────
+  auth-service:
+    build:
+      context: ./services/auth-service
+    container_name: killer-bee-auth
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+    networks:
+      - app
+    restart: unless-stopped
+
+  user-service:
+    build:
+      context: ./services/user-service
+    container_name: killer-bee-user
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+    networks:
+      - app
+    restart: unless-stopped
+
+  ingredient-service:
+    build:
+      context: ./services/ingredient-service
+    container_name: killer-bee-ingredient
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+    networks:
+      - app
+    restart: unless-stopped
+
+  freezbe-service:
+    build:
+      context: ./services/freezbe-service
+    container_name: killer-bee-freezbe
+    environment:
+      - NODE_ENV=production
+      - PORT=3004
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+    networks:
+      - app
+    restart: unless-stopped
+
+  process-service:
+    build:
+      context: ./services/process-service
+    container_name: killer-bee-process
+    environment:
+      - NODE_ENV=production
+      - PORT=3005
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - FREEZBE_SERVICE_URL=http://freezbe-service:3004
+    depends_on:
+      - freezbe-service
+    networks:
+      - app
+    restart: unless-stopped
+
+  # ── Frontend ───────────────────────────────────────────────────────────────────
   frontend:
     build:
       context: ./frontend
@@ -20,7 +86,11 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - backend
+      - auth-service
+      - user-service
+      - ingredient-service
+      - freezbe-service
+      - process-service
     networks:
       - app
     restart: unless-stopped

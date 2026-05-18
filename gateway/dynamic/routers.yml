@@ -1,8 +1,48 @@
 http:
   routers:
-    api-router:
-      rule: "PathPrefix(`/api`)"
-      service: backend
+    auth-router:
+      rule: "PathPrefix(`/api/auth`)"
+      service: auth-service
+      middlewares:
+        - rate-limit
+        - secure-headers
+      entryPoints:
+        - websecure
+      tls: {}
+
+    user-router:
+      rule: "PathPrefix(`/api/users`)"
+      service: user-service
+      middlewares:
+        - rate-limit
+        - secure-headers
+      entryPoints:
+        - websecure
+      tls: {}
+
+    ingredient-router:
+      rule: "PathPrefix(`/api/ingredients`)"
+      service: ingredient-service
+      middlewares:
+        - rate-limit
+        - secure-headers
+      entryPoints:
+        - websecure
+      tls: {}
+
+    freezbe-router:
+      rule: "PathPrefix(`/api/freezbe`)"
+      service: freezbe-service
+      middlewares:
+        - rate-limit
+        - secure-headers
+      entryPoints:
+        - websecure
+      tls: {}
+
+    process-router:
+      rule: "PathPrefix(`/api/processes`)"
+      service: process-service
       middlewares:
         - rate-limit
         - secure-headers
