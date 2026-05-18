@@ -11,24 +11,25 @@ export type ProcessRecord = {
 const processes: ProcessRecord[] = [
   {
     id: 1,
-    nom: 'Procédé Pasteurisation Vanille',
-    description: 'Procédé de fabrication de la glace vanille',
+    nom: 'Procédé Moulage Injection Pro 175',
+    description: 'Procédé de fabrication du Freeze Bee Pro 175 par moulage par injection',
     freezbeId: 1,
     etapes: [
-      'Mélanger lait et crème à 4°C',
-      'Chauffer à 85°C pendant 15s',
-      'Refroidir à 4°C',
-      'Turbiner à -6°C',
-      'Conditionner et surgeler à -18°C',
+      'Préparer et peser les matières premières selon le grammage défini',
+      'Préchauffer le moule à 80°C',
+      'Injecter le mélange de polymères à 220°C sous pression',
+      'Maintenir la pression d\'injection pendant 30 secondes',
+      'Refroidir le moule à 25°C pendant 60 secondes',
+      'Démouler et acheminer vers le poste de contrôle',
     ],
     validationsDeTests: [
-      'Contrôle température pasteurisation',
-      'Contrôle microbiologique J+1',
-      'Contrôle texture turbinage',
+      'Contrôle dimensionnel du disque (diamètre et épaisseur)',
+      'Contrôle de la masse à ±1g près',
+      'Contrôle de résistance aux chocs selon norme EN 71',
     ],
     descriptionsDeControle: [
-      'Vérification pH entre 6.5 et 7.0',
-      'Absence de coliformes totaux',
+      'Vérification du diamètre entre 274mm et 276mm',
+      'Absence de bavures, bulles ou défauts de surface',
     ],
   },
 ]

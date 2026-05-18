@@ -11,21 +11,21 @@ export type FreezebeRecord = {
 const freezbes: FreezebeRecord[] = [
   {
     id: 1,
-    nom: ' Glace Vanille Premium',
-    description: ' Glace à la vanille de Madagascar',
-    pUHT: 4.5,
-    gamme: ' Premium',
+    nom: 'Freeze Bee Pro 175',
+    description: 'Freeze Bee haute performance destiné au sport de haut niveau, certifié compétition',
+    pUHT: 24.9,
+    gamme: 'Premium',
     ingredientIds: [1, 2, 3],
-    grammage: 500,
+    grammage: 175,
   },
   {
     id: 2,
-    nom: ' Sorbet Fraise',
-    description: ' Sorbet à la fraise de saison',
-    pUHT: 3.2,
+    nom: 'Freeze Bee Loisir 150',
+    description: 'Freeze Bee grand public pour le marché du loisir et de la grande distribution',
+    pUHT: 9.9,
     gamme: 'Standard',
-    ingredientIds: [3],
-    grammage: 350,
+    ingredientIds: [1, 3],
+    grammage: 150,
   },
 ]
 

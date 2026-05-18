@@ -5,9 +5,9 @@ export type IngredientRecord = {
 }
 
 const ingredients: IngredientRecord[] = [
-  { id: 1, nom: 'Lait entier', description: 'Lait de vache entier pasteurisé' },
-  { id: 2, nom: 'Crème fraîche', description: 'Crème à 30% de matière grasse' },
-  { id: 3, nom: 'Sucre', description: 'Sucre cristallisé blanc' },
+  { id: 1, nom: 'Polymère ABS', description: 'Acrylonitrile Butadiène Styrène, matière première principale pour le moulage par injection' },
+  { id: 2, nom: 'Plastifiant DINP', description: 'Di-isononyl phtalate, agent plastifiant améliorant la flexibilité du disque' },
+  { id: 3, nom: 'Colorant UV', description: 'Agent colorant résistant aux UV pour la teinte et la finition du disque' },
 ]
 
 let nextId = ingredients.length + 1

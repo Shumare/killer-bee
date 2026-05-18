@@ -6,8 +6,8 @@ export type FreezebeRecord = {
 }
 
 const freezbes: FreezebeRecord[] = [
-  { id: 1, nom: 'Glace Vanille Premium' },
-  { id: 2, nom: 'Sorbet Fraise' },
+  { id: 1, nom: 'Freeze Bee Pro 175' },
+  { id: 2, nom: 'Freeze Bee Loisir 150' },
 ]
 
 export function findFreezebeById(id: number): FreezebeRecord | null {
