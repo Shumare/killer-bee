@@ -53,8 +53,8 @@ services:
       - app
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/auth/login", "||", "true"]
-      interval: 30s
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/health || exit 1"]
+      interval: 15s
       timeout: 5s
       retries: 3
       start_period: 10s
@@ -73,8 +73,8 @@ services:
       - app
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3002/api/users/1", "||", "true"]
-      interval: 30s
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3002/health || exit 1"]
+      interval: 15s
       timeout: 5s
       retries: 3
       start_period: 10s
@@ -93,8 +93,8 @@ services:
       - app
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3003/api/ingredients", "||", "true"]
-      interval: 30s
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3003/health || exit 1"]
+      interval: 15s
       timeout: 5s
       retries: 3
       start_period: 10s
@@ -113,8 +113,8 @@ services:
       - app
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3004/api/freezbe", "||", "true"]
-      interval: 30s
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3004/health || exit 1"]
+      interval: 15s
       timeout: 5s
       retries: 3
       start_period: 10s
@@ -137,12 +137,37 @@ services:
       - app
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3005/api/processes", "||", "true"]
-      interval: 30s
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3005/health || exit 1"]
+      interval: 15s
       timeout: 5s
       retries: 3
       start_period: 10s
 
+  # ── SQL Server ────────────────────────────────────────────────────────────────
+  sql-server:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: killer-bee-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${SA_PASSWORD}
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '$$SA_PASSWORD' -Q 'SELECT 1' -b -No || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
 networks:
   app:
     driver: bridge
+
+volumes:
+  sqlserver-data:

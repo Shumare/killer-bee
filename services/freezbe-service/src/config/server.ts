@@ -6,6 +6,8 @@ import freezbeRoutes from '../routes/freezbe.routes'
 export function createServer() {
   const app = express()
 
+  app.get('/health', (_, res) => res.json({ status: 'ok' }))
+
   app.use(encryptResponse)
   app.use(decryptBody)
 

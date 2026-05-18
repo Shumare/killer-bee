@@ -6,6 +6,8 @@ import authRoutes from '../routes/auth.routes'
 export function createServer() {
   const app = express()
 
+  app.get('/health', (_, res) => res.json({ status: 'ok' }))
+
   app.use(encryptResponse)
   app.use(decryptBody)
 
