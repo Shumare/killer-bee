@@ -1,5 +1,11 @@
 version: '3.8'
 
+# ── Synchronisation horaire ───────────────────────────────────────────────────
+# Les containers partagent l'horloge du daemon Docker host par défaut.
+# Prérequis : configurer chrony/ntpd sur l'hôte en pointant vers le serveur NTP
+# interne (adresse définie dans NTP_SERVER dans .env).
+# La variable TZ contrôle le fuseau horaire affiché dans les logs applicatifs.
+
 services:
 
   # ── Gateway (Traefik) ─────────────────────────────────────────────────────────
@@ -49,6 +55,7 @@ services:
       - NODE_ENV=production
       - PORT=3001
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - TZ=${TZ:-UTC}
     networks:
       - app
     restart: unless-stopped
@@ -69,6 +76,7 @@ services:
       - NODE_ENV=production
       - PORT=3002
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - TZ=${TZ:-UTC}
     networks:
       - app
     restart: unless-stopped
@@ -89,6 +97,7 @@ services:
       - NODE_ENV=production
       - PORT=3003
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - TZ=${TZ:-UTC}
     networks:
       - app
     restart: unless-stopped
@@ -109,6 +118,7 @@ services:
       - NODE_ENV=production
       - PORT=3004
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - TZ=${TZ:-UTC}
     networks:
       - app
     restart: unless-stopped
@@ -130,6 +140,7 @@ services:
       - PORT=3005
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
       - FREEZBE_SERVICE_URL=http://freezbe-service:3004
+      - TZ=${TZ:-UTC}
     depends_on:
       freezbe-service:
         condition: service_healthy
