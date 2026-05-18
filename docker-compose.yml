@@ -1,23 +1,49 @@
 version: '3.8'
 
 services:
-  # ── Monolithe (conservé, désactivable quand les microservices seront stables) ──
-  backend:
+
+  # ── Gateway (Traefik) ─────────────────────────────────────────────────────────
+  gateway:
+    image: traefik:v3.0
+    container_name: killer-bee-gateway
+    ports:
+      - "80:80"
+    volumes:
+      - ./gateway/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./gateway/dynamic:/etc/traefik/dynamic:ro
+      - ./gateway/logs:/logs
+    networks:
+      - app
+    restart: unless-stopped
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      ingredient-service:
+        condition: service_healthy
+      freezbe-service:
+        condition: service_healthy
+      process-service:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+
+  # ── Frontend ──────────────────────────────────────────────────────────────────
+  frontend:
     build:
-      context: ./backend
-    container_name: killer-bee-backend
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: killer-bee-frontend
     networks:
       - app
     restart: unless-stopped
 
-  # ── Microservices ──────────────────────────────────────────────────────────────
+  # ── Auth Service ───────────────────────────────────────────────────────────────
   auth-service:
     build:
       context: ./services/auth-service
+      dockerfile: Dockerfile
     container_name: killer-bee-auth
     environment:
       - NODE_ENV=production
@@ -26,10 +52,18 @@ services:
     networks:
       - app
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/auth/login", "||", "true"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
+  # ── User Service ───────────────────────────────────────────────────────────────
   user-service:
     build:
       context: ./services/user-service
+      dockerfile: Dockerfile
     container_name: killer-bee-user
     environment:
       - NODE_ENV=production
@@ -38,10 +72,18 @@ services:
     networks:
       - app
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3002/api/users/1", "||", "true"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
+  # ── Ingredient Service ────────────────────────────────────────────────────────
   ingredient-service:
     build:
       context: ./services/ingredient-service
+      dockerfile: Dockerfile
     container_name: killer-bee-ingredient
     environment:
       - NODE_ENV=production
@@ -50,10 +92,18 @@ services:
     networks:
       - app
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3003/api/ingredients", "||", "true"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
+  # ── Freezbe Service ───────────────────────────────────────────────────────────
   freezbe-service:
     build:
       context: ./services/freezbe-service
+      dockerfile: Dockerfile
     container_name: killer-bee-freezbe
     environment:
       - NODE_ENV=production
@@ -62,10 +112,18 @@ services:
     networks:
       - app
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3004/api/freezbe", "||", "true"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
+  # ── Process Service ───────────────────────────────────────────────────────────
   process-service:
     build:
       context: ./services/process-service
+      dockerfile: Dockerfile
     container_name: killer-bee-process
     environment:
       - NODE_ENV=production
@@ -73,27 +131,17 @@ services:
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
       - FREEZBE_SERVICE_URL=http://freezbe-service:3004
     depends_on:
-      - freezbe-service
+      freezbe-service:
+        condition: service_healthy
     networks:
       - app
     restart: unless-stopped
-
-  # ── Frontend ───────────────────────────────────────────────────────────────────
-  frontend:
-    build:
-      context: ./frontend
-    container_name: killer-bee-frontend
-    ports:
-      - "80:80"
-    depends_on:
-      - auth-service
-      - user-service
-      - ingredient-service
-      - freezbe-service
-      - process-service
-    networks:
-      - app
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3005/api/processes", "||", "true"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
 networks:
   app:

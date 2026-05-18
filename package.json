@@ -4,7 +4,6 @@
   "private": true,
   "workspaces": [
     "frontend",
-    "backend",
     "middleware-local",
     "services/auth-service",
     "services/user-service",
@@ -13,8 +12,7 @@
     "services/process-service"
   ],
   "scripts": {
-    "dev": "concurrently -n auth,user,ingredient,freezbe,process,front -c blue,cyan,green,yellow,red,magenta \"npm run dev --prefix services/auth-service\" \"npm run dev --prefix services/user-service\" \"npm run dev --prefix services/ingredient-service\" \"npm run dev --prefix services/freezbe-service\" \"npm run dev --prefix services/process-service\" \"npm run dev --prefix frontend\"",
-    "dev:mono": "concurrently -n backend,front -c blue,magenta \"npm run dev --prefix backend\" \"cross-env VITE_MONO=true npm run dev --prefix frontend\""
+    "dev": "concurrently -n auth,user,ingredient,freezbe,process,front -c blue,cyan,green,yellow,red,magenta \"npm run dev --prefix services/auth-service\" \"npm run dev --prefix services/user-service\" \"npm run dev --prefix services/ingredient-service\" \"npm run dev --prefix services/freezbe-service\" \"npm run dev --prefix services/process-service\" \"npm run dev --prefix frontend\""
   },
   "devDependencies": {
     "concurrently": "^8.2.0",

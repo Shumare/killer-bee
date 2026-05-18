@@ -2,7 +2,7 @@ import { useAuthStore } from '../../store/auth.store'
 import { useRouter } from '../../store/router.store'
 import type { Page } from '../../store/router.store'
 import useLogout from '../../hooks/useLogout'
-import { isAuthorized, type Role } from '../../security/auth.guard'
+import type { Role } from '../../security/auth.guard'
 import FreezebePage from './FreezebePage'
 import IngredientPage from './IngredientPage'
 import ProcessPage from './ProcessPage'
@@ -20,13 +20,6 @@ export default function DashboardPage() {
   const { user } = useAuthStore()
   const { logout, isLoading: loggingOut } = useLogout()
   const { currentPage, navigate } = useRouter()
-
-  const visibleNav = navItems.filter(({ allowedRoles }) => isAuthorized(user, allowedRoles))
-
-  function guardedNavigate(page: Page, allowedRoles: Role[]) {
-    if (!isAuthorized(user, allowedRoles)) return
-    navigate(page)
-  }
 
   return (
     <div className="app-shell">

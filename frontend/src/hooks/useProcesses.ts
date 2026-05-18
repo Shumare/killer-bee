@@ -5,7 +5,7 @@ import type { ProcessDTO, CreateProcessDTO, UpdateProcessDTO } from '../dto/proc
 
 export default function useProcesses() {
   const [processes, setProcesses] = useState<ProcessDTO[]>([])
-  const [state, setState] = useState<NormalizedResponse<ProcessDTO[]>>(normalizePending())
+  const [state, setState] = useState<NormalizedResponse<ProcessDTO[] | null>>(normalizePending())
 
   async function load() {
     setState(normalizePending())

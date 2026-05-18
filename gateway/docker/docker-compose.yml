@@ -1,42 +1,148 @@
 version: '3.8'
 
 services:
-  traefik:
+
+  # ── Gateway (Traefik) — seul service exposé sur le réseau ─────────────────────
+  gateway:
     image: traefik:v3.0
-    container_name: traefik
+    container_name: killer-bee-gateway
     restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ../traefik/traefik.yml:/etc/traefik/traefik.yml:ro
       - ../dynamic:/etc/traefik/dynamic:ro
-      - ../certificates:/certificates
       - ../logs:/logs
     networks:
-      - gateway
+      - app
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      ingredient-service:
+        condition: service_healthy
+      freezbe-service:
+        condition: service_healthy
+      process-service:
+        condition: service_healthy
+      frontend:
+        condition: service_started
 
-  backend:
-    build:
-      context: ../../backend
-    container_name: killer-bee-backend
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - JWT_SECRET=${JWT_SECRET}
-    networks:
-      - gateway
-    restart: unless-stopped
-
+  # ── Frontend ──────────────────────────────────────────────────────────────────
   frontend:
     build:
       context: ../../frontend
+      dockerfile: Dockerfile
     container_name: killer-bee-frontend
     networks:
-      - gateway
+      - app
     restart: unless-stopped
 
+  # ── Auth Service ───────────────────────────────────────────────────────────────
+  auth-service:
+    build:
+      context: ../../services/auth-service
+      dockerfile: Dockerfile
+    container_name: killer-bee-auth
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/auth/login", "||", "true"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ── User Service ───────────────────────────────────────────────────────────────
+  user-service:
+    build:
+      context: ../../services/user-service
+      dockerfile: Dockerfile
+    container_name: killer-bee-user
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3002/api/users/1", "||", "true"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ── Ingredient Service ────────────────────────────────────────────────────────
+  ingredient-service:
+    build:
+      context: ../../services/ingredient-service
+      dockerfile: Dockerfile
+    container_name: killer-bee-ingredient
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3003/api/ingredients", "||", "true"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ── Freezbe Service ───────────────────────────────────────────────────────────
+  freezbe-service:
+    build:
+      context: ../../services/freezbe-service
+      dockerfile: Dockerfile
+    container_name: killer-bee-freezbe
+    environment:
+      - NODE_ENV=production
+      - PORT=3004
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3004/api/freezbe", "||", "true"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ── Process Service ───────────────────────────────────────────────────────────
+  process-service:
+    build:
+      context: ../../services/process-service
+      dockerfile: Dockerfile
+    container_name: killer-bee-process
+    environment:
+      - NODE_ENV=production
+      - PORT=3005
+      - JWT_SECRET=${JWT_SECRET}
+      - FREEZBE_SERVICE_URL=http://freezbe-service:3004
+    depends_on:
+      freezbe-service:
+        condition: service_healthy
+    networks:
+      - app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3005/api/processes", "||", "true"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
 networks:
-  gateway:
+  app:
     driver: bridge
