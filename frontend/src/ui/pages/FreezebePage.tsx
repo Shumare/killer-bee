@@ -3,6 +3,8 @@ import useFreezebes from '../../hooks/useFreezebes'
 import useIngredients from '../../hooks/useIngredients'
 import type { FreezebeDTO, CreateFreezebeDTO } from '../../dto/freezbe.dto'
 import { requiredString, positiveFloat, positiveInt, hasErrors, type FormErrors } from '../../utils/validate'
+import { useToast } from '../../store/toast.store'
+import ConfirmDialog from '../components/ConfirmDialog'
 
 type Fields = 'nom' | 'description' | 'pUHT' | 'grammage' | 'gamme' | 'ingredientIds'
 
@@ -20,11 +22,13 @@ function validate(form: CreateFreezebeDTO): FormErrors<Fields> {
 export default function FreezebePage() {
   const { freezebes, isLoading, hasError, create, update, remove } = useFreezebes()
   const { ingredients } = useIngredients()
+  const { notify } = useToast()
   const [form, setForm] = useState<CreateFreezebeDTO>(emptyForm)
   const [editing, setEditing] = useState<FreezebeDTO | null>(null)
   const [errors, setErrors] = useState<FormErrors<Fields>>({})
   const [search, setSearch] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState<{ id: number; nom: string } | null>(null)
 
   function set<K extends keyof CreateFreezebeDTO>(field: K, value: CreateFreezebeDTO[K]) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -58,12 +62,33 @@ export default function FreezebePage() {
     if (hasErrors(errs)) { setErrors(errs); return }
     setSubmitting(true)
     try {
-      if (editing) { await update(editing.id, form); cancelEdit() }
-      else { await create(form); setForm(emptyForm) }
+      if (editing) {
+        await update(editing.id, form)
+        notify(`Modèle « ${editing.nom} » mis à jour.`)
+        cancelEdit()
+      } else {
+        await create(form)
+        notify(`Modèle « ${form.nom} » créé.`)
+        setForm(emptyForm)
+      }
     } catch (err) {
       console.error('[FreezebePage] Erreur soumission', err)
+      notify('Une erreur est survenue.', 'error')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleRemove() {
+    if (!pendingDelete) return
+    try {
+      await remove(pendingDelete.id)
+      notify(`Modèle « ${pendingDelete.nom} » supprimé.`, 'info')
+    } catch (err) {
+      console.error('[FreezebePage] Erreur suppression', err)
+      notify('Erreur lors de la suppression.', 'error')
+    } finally {
+      setPendingDelete(null)
     }
   }
 
@@ -190,7 +215,7 @@ export default function FreezebePage() {
                 <button type="button" className="button-secondary button-small" onClick={() => startEdit(f)}>
                   Modifier
                 </button>
-                <button type="button" className="button-danger button-small" onClick={() => remove(f.id)}>
+                <button type="button" className="button-danger button-small" onClick={() => setPendingDelete({ id: f.id, nom: f.nom })}>
                   Supprimer
                 </button>
               </div>
@@ -198,6 +223,14 @@ export default function FreezebePage() {
           )
         })}
       </ul>
+
+      {pendingDelete && (
+        <ConfirmDialog
+          message={`Supprimer le modèle « ${pendingDelete.nom} » ?`}
+          onConfirm={handleRemove}
+          onCancel={() => setPendingDelete(null)}
+        />
+      )}
     </div>
   )
 }

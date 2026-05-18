@@ -3,6 +3,8 @@ import useProcesses from '../../hooks/useProcesses'
 import useFreezebes from '../../hooks/useFreezebes'
 import type { ProcessDTO, CreateProcessDTO } from '../../dto/process.dto'
 import { requiredString, selectedId, nonEmptyList, hasErrors, type FormErrors } from '../../utils/validate'
+import { useToast } from '../../store/toast.store'
+import ConfirmDialog from '../components/ConfirmDialog'
 
 type Fields = 'nom' | 'description' | 'freezbeId' | 'etapes' | 'validationsDeTests' | 'descriptionsDeControle'
 
@@ -19,11 +21,13 @@ function validate(form: CreateProcessDTO): FormErrors<Fields> {
 export default function ProcessPage() {
   const { processes, isLoading, hasError, create, update, remove } = useProcesses()
   const { freezebes } = useFreezebes()
+  const { notify } = useToast()
   const [form, setForm] = useState<CreateProcessDTO>(emptyForm)
   const [editing, setEditing] = useState<ProcessDTO | null>(null)
   const [errors, setErrors] = useState<FormErrors<Fields>>({})
   const [search, setSearch] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState<{ id: number; nom: string } | null>(null)
 
   function setField<K extends keyof CreateProcessDTO>(field: K, value: CreateProcessDTO[K]) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -74,12 +78,33 @@ export default function ProcessPage() {
       descriptionsDeControle: form.descriptionsDeControle.filter((s) => s.trim()),
     }
     try {
-      if (editing) { await update(editing.id, payload); cancelEdit() }
-      else { await create(payload); setForm(emptyForm) }
+      if (editing) {
+        await update(editing.id, payload)
+        notify(`Procédé « ${editing.nom} » mis à jour.`)
+        cancelEdit()
+      } else {
+        await create(payload)
+        notify(`Procédé « ${form.nom} » créé.`)
+        setForm(emptyForm)
+      }
     } catch (err) {
       console.error('[ProcessPage] Erreur soumission', err)
+      notify('Une erreur est survenue.', 'error')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleRemove() {
+    if (!pendingDelete) return
+    try {
+      await remove(pendingDelete.id)
+      notify(`Procédé « ${pendingDelete.nom} » supprimé.`, 'info')
+    } catch (err) {
+      console.error('[ProcessPage] Erreur suppression', err)
+      notify('Erreur lors de la suppression.', 'error')
+    } finally {
+      setPendingDelete(null)
     }
   }
 
@@ -197,7 +222,7 @@ export default function ProcessPage() {
                 <button type="button" className="button-secondary button-small" onClick={() => startEdit(p)}>
                   Modifier
                 </button>
-                <button type="button" className="button-danger button-small" onClick={() => remove(p.id)}>
+                <button type="button" className="button-danger button-small" onClick={() => setPendingDelete({ id: p.id, nom: p.nom })}>
                   Supprimer
                 </button>
               </div>
@@ -205,6 +230,14 @@ export default function ProcessPage() {
           )
         })}
       </ul>
+
+      {pendingDelete && (
+        <ConfirmDialog
+          message={`Supprimer le procédé « ${pendingDelete.nom} » ?`}
+          onConfirm={handleRemove}
+          onCancel={() => setPendingDelete(null)}
+        />
+      )}
     </div>
   )
 }

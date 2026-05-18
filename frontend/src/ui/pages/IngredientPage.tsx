@@ -2,6 +2,8 @@ import { useState } from 'react'
 import useIngredients from '../../hooks/useIngredients'
 import type { IngredientDTO, CreateIngredientDTO } from '../../dto/ingredient.dto'
 import { requiredString, hasErrors, type FormErrors } from '../../utils/validate'
+import { useToast } from '../../store/toast.store'
+import ConfirmDialog from '../components/ConfirmDialog'
 
 type Fields = 'nom' | 'description'
 
@@ -15,11 +17,13 @@ function validate(form: CreateIngredientDTO): FormErrors<Fields> {
 
 export default function IngredientPage() {
   const { ingredients, isLoading, hasError, create, update, remove } = useIngredients()
+  const { notify } = useToast()
   const [form, setForm] = useState<CreateIngredientDTO>(emptyForm)
   const [editing, setEditing] = useState<IngredientDTO | null>(null)
   const [errors, setErrors] = useState<FormErrors<Fields>>({})
   const [search, setSearch] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState<{ id: number; nom: string } | null>(null)
 
   function set(field: keyof CreateIngredientDTO, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -44,12 +48,33 @@ export default function IngredientPage() {
     if (hasErrors(errs)) { setErrors(errs); return }
     setSubmitting(true)
     try {
-      if (editing) { await update(editing.id, form); cancelEdit() }
-      else { await create(form); setForm(emptyForm) }
+      if (editing) {
+        await update(editing.id, form)
+        notify(`Ingrédient « ${editing.nom} » mis à jour.`)
+        cancelEdit()
+      } else {
+        await create(form)
+        notify(`Ingrédient « ${form.nom} » créé.`)
+        setForm(emptyForm)
+      }
     } catch (err) {
       console.error('[IngredientPage] Erreur soumission', err)
+      notify('Une erreur est survenue.', 'error')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleRemove() {
+    if (!pendingDelete) return
+    try {
+      await remove(pendingDelete.id)
+      notify(`Ingrédient « ${pendingDelete.nom} » supprimé.`, 'info')
+    } catch (err) {
+      console.error('[IngredientPage] Erreur suppression', err)
+      notify('Erreur lors de la suppression.', 'error')
+    } finally {
+      setPendingDelete(null)
     }
   }
 
@@ -122,13 +147,21 @@ export default function IngredientPage() {
               <button type="button" className="button-secondary button-small" onClick={() => startEdit(i)}>
                 Modifier
               </button>
-              <button type="button" className="button-danger button-small" onClick={() => remove(i.id)}>
+              <button type="button" className="button-danger button-small" onClick={() => setPendingDelete({ id: i.id, nom: i.nom })}>
                 Supprimer
               </button>
             </div>
           </li>
         ))}
       </ul>
+
+      {pendingDelete && (
+        <ConfirmDialog
+          message={`Supprimer l'ingrédient « ${pendingDelete.nom} » ?`}
+          onConfirm={handleRemove}
+          onCancel={() => setPendingDelete(null)}
+        />
+      )}
     </div>
   )
 }
