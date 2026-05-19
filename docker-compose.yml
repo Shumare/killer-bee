@@ -34,6 +34,8 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+      args:
+        - VITE_CIPHER_KEY=${VITE_CIPHER_KEY:-killer-bee-default-key}
     container_name: killer-bee-frontend
     networks:
       - app
@@ -50,10 +52,11 @@ services:
       - PORT=3001
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
       - TZ=${TZ:-UTC}
+      - CIPHER_KEY=${CIPHER_KEY:-killer-bee-default-key}
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT:-1433}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME:-killer_bee}
+      - DB_USER=${DB_USER:-LOGIN_APP}
       - DB_PASSWORD=${DB_PASSWORD}
     networks:
       - app
@@ -76,10 +79,11 @@ services:
       - PORT=3002
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
       - TZ=${TZ:-UTC}
+      - CIPHER_KEY=${CIPHER_KEY:-killer-bee-default-key}
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT:-1433}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME:-killer_bee}
+      - DB_USER=${DB_USER:-LOGIN_APP}
       - DB_PASSWORD=${DB_PASSWORD}
     networks:
       - app
@@ -102,10 +106,11 @@ services:
       - PORT=3003
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
       - TZ=${TZ:-UTC}
+      - CIPHER_KEY=${CIPHER_KEY:-killer-bee-default-key}
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT:-1433}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME:-killer_bee}
+      - DB_USER=${DB_USER:-LOGIN_APP}
       - DB_PASSWORD=${DB_PASSWORD}
     networks:
       - app
@@ -128,10 +133,11 @@ services:
       - PORT=3004
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
       - TZ=${TZ:-UTC}
+      - CIPHER_KEY=${CIPHER_KEY:-killer-bee-default-key}
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT:-1433}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME:-killer_bee}
+      - DB_USER=${DB_USER:-LOGIN_APP}
       - DB_PASSWORD=${DB_PASSWORD}
     networks:
       - app
@@ -157,8 +163,8 @@ services:
       - CIPHER_KEY=${CIPHER_KEY:-killer-bee-default-key}
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT:-1433}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME:-killer_bee}
+      - DB_USER=${DB_USER:-LOGIN_APP}
       - DB_PASSWORD=${DB_PASSWORD}
       - FREEZBE_SERVICE_URL=http://freezbe-service:3004
     depends_on:

@@ -1,6 +1,10 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+# VITE_CIPHER_KEY doit être disponible au moment du build (Vite l'injecte dans le bundle JS)
+ARG VITE_CIPHER_KEY
+ENV VITE_CIPHER_KEY=$VITE_CIPHER_KEY
+
 # Copy root workspace manifest (needed to resolve local packages)
 COPY package.json ./
 

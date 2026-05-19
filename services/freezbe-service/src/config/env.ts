@@ -5,7 +5,7 @@ export const env = {
   DB_HOST: process.env.DB_HOST ?? 'sql-server',
   DB_PORT: Number(process.env.DB_PORT ?? 1433),
   DB_NAME: process.env.DB_NAME ?? 'killer_bee',
-  DB_USER: process.env.DB_USER ?? 'sa',
+  DB_USER: process.env.DB_USER ?? 'LOGIN_APP',
   DB_PASSWORD: process.env.DB_PASSWORD ?? '',
   CIPHER_KEY: process.env.CIPHER_KEY ?? 'killer-bee-default-key',
 }
