@@ -1,11 +1,5 @@
 version: '3.8'
 
-# ── Synchronisation horaire ───────────────────────────────────────────────────
-# Les containers partagent l'horloge du daemon Docker host par défaut.
-# Prérequis : configurer chrony/ntpd sur l'hôte en pointant vers le serveur NTP
-# interne (adresse définie dans NTP_SERVER dans .env).
-# La variable TZ contrôle le fuseau horaire affiché dans les logs applicatifs.
-
 services:
 
   # ── Gateway (Traefik) ─────────────────────────────────────────────────────────
@@ -56,15 +50,11 @@ services:
       - PORT=3001
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
       - TZ=${TZ:-UTC}
-      - CIPHER_KEY=${CIPHER_KEY:-killer-bee-default-key}
-      - DB_HOST=sql-server
-      - DB_PORT=1433
-      - DB_NAME=killer_bee
-      - DB_USER=sa
-      - DB_PASSWORD=${SA_PASSWORD}
-    depends_on:
-      sql-server:
-        condition: service_healthy
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-1433}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
     networks:
       - app
     restart: unless-stopped
@@ -86,15 +76,11 @@ services:
       - PORT=3002
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
       - TZ=${TZ:-UTC}
-      - CIPHER_KEY=${CIPHER_KEY:-killer-bee-default-key}
-      - DB_HOST=sql-server
-      - DB_PORT=1433
-      - DB_NAME=killer_bee
-      - DB_USER=sa
-      - DB_PASSWORD=${SA_PASSWORD}
-    depends_on:
-      sql-server:
-        condition: service_healthy
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-1433}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
     networks:
       - app
     restart: unless-stopped
@@ -116,15 +102,11 @@ services:
       - PORT=3003
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
       - TZ=${TZ:-UTC}
-      - CIPHER_KEY=${CIPHER_KEY:-killer-bee-default-key}
-      - DB_HOST=sql-server
-      - DB_PORT=1433
-      - DB_NAME=killer_bee
-      - DB_USER=sa
-      - DB_PASSWORD=${SA_PASSWORD}
-    depends_on:
-      sql-server:
-        condition: service_healthy
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-1433}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
     networks:
       - app
     restart: unless-stopped
@@ -146,15 +128,11 @@ services:
       - PORT=3004
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
       - TZ=${TZ:-UTC}
-      - CIPHER_KEY=${CIPHER_KEY:-killer-bee-default-key}
-      - DB_HOST=sql-server
-      - DB_PORT=1433
-      - DB_NAME=killer_bee
-      - DB_USER=sa
-      - DB_PASSWORD=${SA_PASSWORD}
-    depends_on:
-      sql-server:
-        condition: service_healthy
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-1433}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
     networks:
       - app
     restart: unless-stopped
@@ -175,17 +153,15 @@ services:
       - NODE_ENV=production
       - PORT=3005
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
-      - DB_HOST=sql-server
-      - DB_PORT=1433
-      - DB_NAME=killer_bee
-      - DB_USER=sa
-      - DB_PASSWORD=${SA_PASSWORD}
-      - FREEZBE_SERVICE_URL=http://freezbe-service:3004
       - TZ=${TZ:-UTC}
       - CIPHER_KEY=${CIPHER_KEY:-killer-bee-default-key}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-1433}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - FREEZBE_SERVICE_URL=http://freezbe-service:3004
     depends_on:
-      sql-server:
-        condition: service_healthy
       freezbe-service:
         condition: service_healthy
     networks:
@@ -198,34 +174,6 @@ services:
       retries: 3
       start_period: 20s
 
-  # ── SQL Server ────────────────────────────────────────────────────────────────
-  sql-server:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: killer-bee-sqlserver
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=${SA_PASSWORD}
-      - MSSQL_PID=Express
-    ports:
-      - "1433:1433"
-    volumes:
-      - sqlserver-data:/var/opt/mssql
-      - ./docker/sql/entrypoint.sh:/usr/src/app/entrypoint.sh
-      - ./docker/sql/init.sql:/usr/src/app/init.sql
-    entrypoint: ["/bin/bash", "/usr/src/app/entrypoint.sh"]
-    networks:
-      - app
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$SA_PASSWORD\" -Q 'SELECT 1' -b -No || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
-
 networks:
   app:
     driver: bridge
-
-volumes:
-  sqlserver-data:

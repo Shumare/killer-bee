@@ -402,6 +402,18 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER PROCEDURE sp_GetProcessesByFreezebeId
+    @freeze_bee_id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT id, nom, description, freeze_bee_id,
+           etapes, validations_tests, descriptions_controle
+    FROM PROCESSUS
+    WHERE freeze_bee_id = @freeze_bee_id;
+END
+GO
+
 CREATE OR ALTER PROCEDURE sp_SearchProcesses
     @nom NVARCHAR(200)
 AS

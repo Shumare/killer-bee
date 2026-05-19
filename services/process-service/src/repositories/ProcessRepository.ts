@@ -32,8 +32,8 @@ export const ProcessRepository = {
   async findByFreezebeId(freezbeId: number): Promise<ProcessRecord[]> {
     const pool = await getPool()
     const result = await pool.request()
-      .input('id', sql.Int, freezbeId)
-      .execute('sp_GetProcessById')
+      .input('freeze_bee_id', sql.Int, freezbeId)
+      .execute('sp_GetProcessesByFreezebeId')
     return result.recordset.map(mapRow)
   },
 
