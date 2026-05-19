@@ -1,7 +1,9 @@
 import type { CreateProcessDTO, UpdateProcessDTO, ProcessResponseDTO } from '../dto/ProcessDTO'
 import { ProcessRepository } from '../repositories/ProcessRepository'
 import { mapRecordToProcess, mapProcessToResponse } from '../mappers/process.mapper'
-import { findFreezebeById } from '../mock-data/freezbe.mock'
+import type { FreezebeRecord } from '../mock-data/freezbe.mock'
+import { env } from '../config/env'
+import { interGet } from '../utils/httpClient'
 import { log } from '../utils/logger'
 
 export const ProcessService = {
@@ -23,13 +25,17 @@ export const ProcessService = {
 
   async create(dto: CreateProcessDTO): Promise<ProcessResponseDTO> {
     log.debug('Vérification du modèle Freezbe associé', { category: 'communication', freezbeId: dto.freezbeId })
-    const freezbe = findFreezebeById(dto.freezbeId)
-    if (!freezbe) {
-      log.warn('Modèle Freezbe associé introuvable — création refusée', {
-        category: 'communication',
-        freezbeId: dto.freezbeId,
-      })
-      throw Object.assign(new Error('Modèle Freezbe associé introuvable'), { status: 400 })
+    try {
+      await interGet<FreezebeRecord>(`${env.FREEZBE_SERVICE_URL}/api/freezbe/${dto.freezbeId}`)
+    } catch (err) {
+      if ((err as { status?: number }).status === 404) {
+        log.warn('Modèle Freezbe associé introuvable — création refusée', {
+          category: 'communication',
+          freezbeId: dto.freezbeId,
+        })
+        throw Object.assign(new Error('Modèle Freezbe associé introuvable'), { status: 400 })
+      }
+      throw err
     }
 
     log.debug('ProcessRepository.create()', { category: 'operation', nom: dto.nom, freezbeId: dto.freezbeId })

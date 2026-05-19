@@ -1,10 +1,5 @@
 import { log } from '../../utils/logger'
 
-// Événements d'audit de sécurité — niveau RFC 5424 selon la criticité
-// notice  : tentative normale, opération sensible attendue
-// warn    : échec d'authentification, accès refusé, token invalide
-// alert   : nécessite une action immédiate (ex : brute-force détecté)
-
 type AuditEvent =
   | 'login_attempt'
   | 'login_success'

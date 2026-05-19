@@ -51,8 +51,7 @@ const devFormat = winston.format.combine(
   winston.format.colorize({ all: true }),
   winston.format.printf(({ level, timestamp, message, service, category, ...rest }) => {
     const cat = category ? `[${String(category)}] ` : ''
-    const keys = Object.keys(rest)
-    const meta = keys.length > 0 ? ` ${JSON.stringify(rest)}` : ''
+    const meta = Object.keys(rest).length > 0 ? ` ${JSON.stringify(rest)}` : ''
     return `[${String(timestamp)}] ${String(level).padEnd(6)} [${String(service)}] ${cat}${String(message)}${meta}`
   }),
 )

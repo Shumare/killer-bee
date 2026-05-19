@@ -7,4 +7,5 @@ export const env = {
   DB_NAME: process.env.DB_NAME ?? 'killer_bee',
   DB_USER: process.env.DB_USER ?? 'sa',
   DB_PASSWORD: process.env.DB_PASSWORD ?? '',
+  CIPHER_KEY: process.env.CIPHER_KEY ?? 'killer-bee-default-key',
 }

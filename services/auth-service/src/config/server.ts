@@ -2,14 +2,14 @@ import express, { type Request, type Response, type NextFunction } from 'express
 import { errorMiddleware } from '../middlewares/error.middleware'
 import { encryptResponse, decryptBody } from '../middlewares/cipher.middleware'
 import authRoutes from '../routes/auth.routes'
-import { log, type LogCategory } from '../utils/logger'
+import { log } from '../utils/logger'
 
 function httpLogger(req: Request, res: Response, next: NextFunction): void {
   const start = Date.now()
   const { method, path: reqPath, ip } = req
 
   log.debug(`→ ${method} ${reqPath}`, {
-    category: 'http' as LogCategory,
+    category: 'http',
     method,
     path: reqPath,
     ip,
@@ -18,7 +18,7 @@ function httpLogger(req: Request, res: Response, next: NextFunction): void {
 
   res.on('finish', () => {
     const ms = Date.now() - start
-    const meta = { category: 'http' as LogCategory, method, path: reqPath, status: res.statusCode, ms }
+    const meta = { category: 'http', method, path: reqPath, status: res.statusCode, ms }
     const msg = `← ${method} ${reqPath} ${res.statusCode} (${ms}ms)`
     if (res.statusCode >= 500)      log.error(msg, meta)
     else if (res.statusCode >= 400) log.warn(msg, meta)
