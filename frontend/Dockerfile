@@ -11,7 +11,7 @@ COPY middleware-local ./middleware-local
 COPY frontend/package.json ./frontend/
 
 # Install only the frontend workspace (resolves @killer-bee/middleware-local locally)
-RUN npm install --workspace=frontend
+RUN npm install --workspace=frontend --include=dev
 
 # Copy frontend source
 COPY frontend/src ./frontend/src
