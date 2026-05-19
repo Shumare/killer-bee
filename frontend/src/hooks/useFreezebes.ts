@@ -5,7 +5,7 @@ import type { FreezebeDTO, CreateFreezebeDTO, UpdateFreezebeDTO } from '../dto/f
 
 export default function useFreezebes() {
   const [freezebes, setFreezebes] = useState<FreezebeDTO[]>([])
-  const [state, setState] = useState<NormalizedResponse<FreezebeDTO[]>>(normalizePending())
+  const [state, setState] = useState<NormalizedResponse<FreezebeDTO[] | null>>(normalizePending())
 
   async function load() {
     setState(normalizePending())

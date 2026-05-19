@@ -1,0 +1,5 @@
+# Fins de ligne par défaut : LF partout
+* text=auto eol=lf
+
+# Scripts shell : toujours LF (requis pour les containers Linux)
+*.sh text eol=lf

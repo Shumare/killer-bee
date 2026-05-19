@@ -235,3 +235,93 @@ input::placeholder, textarea::placeholder { color: var(--muted) }
     justify-content: flex-start;
   }
 }
+
+/* ── Toasts ── */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(24px) }
+  to   { opacity: 1; transform: translateX(0) }
+}
+
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: .93rem;
+  font-weight: 500;
+  cursor: pointer;
+  pointer-events: all;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+  animation: toast-in .22s ease;
+  max-width: 320px;
+}
+
+.toast-success {
+  background: #f0faf4;
+  border: 1px solid #86efb0;
+  color: #166534;
+}
+
+.toast-error {
+  background: #fff5f5;
+  border: 1px solid rgba(195,58,43,0.30);
+  color: var(--danger);
+}
+
+.toast-info {
+  background: #fffbf0;
+  border: 1px solid var(--accent-soft);
+  color: #7a4800;
+}
+
+.toast-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* ── Confirm Dialog ── */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.30);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+  backdrop-filter: blur(2px);
+}
+
+.dialog {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 32px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.14);
+}
+
+.dialog-message {
+  margin: 0 0 24px;
+  font-size: 1rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}

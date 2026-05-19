@@ -1,9 +1,29 @@
 http:
   services:
-    backend:
+    auth-service:
       loadBalancer:
         servers:
-          - url: "http://backend:3000"
+          - url: "http://auth-service:3001"
+
+    user-service:
+      loadBalancer:
+        servers:
+          - url: "http://user-service:3002"
+
+    ingredient-service:
+      loadBalancer:
+        servers:
+          - url: "http://ingredient-service:3003"
+
+    freezbe-service:
+      loadBalancer:
+        servers:
+          - url: "http://freezbe-service:3004"
+
+    process-service:
+      loadBalancer:
+        servers:
+          - url: "http://process-service:3005"
 
     frontend:
       loadBalancer:

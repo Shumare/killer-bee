@@ -1,28 +1,38 @@
 entryPoints:
   web:
     address: ":80"
-    http:
-      redirections:
-        entryPoint:
-          to: websecure
-          scheme: https
-  websecure:
-    address: ":443"
 
 providers:
   file:
     directory: /etc/traefik/dynamic
     watch: true
-  docker:
-    exposedByDefault: false
 
-api:
-  dashboard: true
-  insecure: false
-
+# ── Logs applicatifs Traefik ──────────────────────────────────────────────────
+# Niveau DEBUG pour capturer tous les niveaux RFC 5424 côté infrastructure.
+# Format JSON pour compatibilité avec les outils d'agrégation (ELK, Loki, etc.)
 log:
-  level: INFO
+  level: DEBUG
+  format: json
   filePath: /logs/traefik.log
 
+# ── Access logs ───────────────────────────────────────────────────────────────
+# Chaque requête HTTP routée par Traefik génère une entrée structurée.
 accessLog:
   filePath: /logs/access.log
+  format: json
+  fields:
+    defaultMode: keep
+    names:
+      StartUTC: drop
+    headers:
+      defaultMode: keep
+      names:
+        Authorization: redact
+        Cookie: redact
+        X-Request-Id: keep
+        X-Forwarded-For: keep
+        User-Agent: keep
+  # Ne filtre pas par statut — on capture tout, on filtre à l'agrégation
+  filters:
+    retryAttempts: true
+    minDuration: "0ms"

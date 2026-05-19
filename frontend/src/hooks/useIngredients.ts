@@ -5,7 +5,7 @@ import type { IngredientDTO, CreateIngredientDTO, UpdateIngredientDTO } from '..
 
 export default function useIngredients() {
   const [ingredients, setIngredients] = useState<IngredientDTO[]>([])
-  const [state, setState] = useState<NormalizedResponse<IngredientDTO[]>>(normalizePending())
+  const [state, setState] = useState<NormalizedResponse<IngredientDTO[] | null>>(normalizePending())
 
   async function load() {
     setState(normalizePending())
