@@ -25,10 +25,7 @@ export async function authenticateWithAD(
   })
 
   const upn = `${username}@${env.LDAP_DOMAIN}`
-  const client = new Client({
-    url: env.LDAP_URL,
-    tlsOptions: { rejectUnauthorized: false },
-  })
+  const client = new Client({ url: env.LDAP_URL })
 
   try {
     // Bind direct avec le UPN de l'utilisateur — valide les credentials sans compte de service

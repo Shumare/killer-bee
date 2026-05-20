@@ -5,8 +5,8 @@
   "dependencies": {
     "express": "^4.19.0",
     "ldapts": "^4.2.6",
-    "winston": "^3.17.0",
-    "mssql": "^12.5.4"
+    "mssql": "^12.5.4",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",

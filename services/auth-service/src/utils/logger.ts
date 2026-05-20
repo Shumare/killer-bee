@@ -42,6 +42,10 @@ export interface AppLogger extends winston.Logger {
   alert:  winston.LeveledLogMethod
   crit:   winston.LeveledLogMethod
   notice: winston.LeveledLogMethod
+  debug:  winston.LeveledLogMethod
+  info:   winston.LeveledLogMethod
+  warn:   winston.LeveledLogMethod
+  error:  winston.LeveledLogMethod
 }
 
 // ── Formats ──────────────────────────────────────────────────────────────────
