@@ -4,7 +4,7 @@ import type { User } from '../models/User'
 
 export function mapLoginResponseToUser(dto: LoginResponseDTO): User {
   return {
-    id: dto.user_id,
+    id: dto.username,
     name: dto.full_name,
     email: '',
   }
@@ -13,6 +13,6 @@ export function mapLoginResponseToUser(dto: LoginResponseDTO): User {
 export function mapLoginResponseToSession(dto: LoginResponseDTO): Session {
   return {
     token: dto.access_token,
-    userId: dto.user_id,
+    userId: dto.username,
   }
 }

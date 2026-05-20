@@ -6,4 +6,5 @@ export type LoginRequestDTO = {
 export type LoginResponseDTO = {
   access_token: string
   full_name: string
+  username: string
 }

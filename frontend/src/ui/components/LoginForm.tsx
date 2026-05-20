@@ -4,12 +4,12 @@ import Button from './Button'
 import Input from './Input'
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const { login, isLoading, hasError } = useLogin()
 
   function handleSubmit() {
-    login({ email, password })
+    login({ username, password })
   }
 
   return (
@@ -17,8 +17,8 @@ export default function LoginForm() {
       <div className="form-heading">Rentre dans le village</div>
       <div className="form-grid">
         <div className="form-field">
-          <label className="label" htmlFor="email">Email</label>
-          <Input id="email" name="email" type="email" value={email} onChange={setEmail} placeholder="Email" />
+          <label className="label" htmlFor="username">Identifiant</label>
+          <Input id="username" name="username" type="text" value={username} onChange={setUsername} placeholder="Identifiant AD" />
         </div>
         <div className="form-field">
           <label className="label" htmlFor="password">Mot de passe</label>

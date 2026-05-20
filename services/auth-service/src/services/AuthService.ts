@@ -39,7 +39,7 @@ export const AuthService = {
       schema:    mapped.schema,
     })
 
-    return { access_token: token, full_name: adUser.displayName }
+    return { access_token: token, full_name: adUser.displayName, username: adUser.sAMAccountName }
   },
 
   async logout(): Promise<void> {

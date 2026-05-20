@@ -5,7 +5,7 @@ export function validateLoginResponse(data: unknown): data is LoginResponseDTO {
   const d = data as Record<string, unknown>
   return (
     typeof d.access_token === 'string' &&
-    typeof d.user_id === 'number' &&
-    typeof d.full_name === 'string'
+    typeof d.full_name === 'string' &&
+    typeof d.username === 'string'
   )
 }
