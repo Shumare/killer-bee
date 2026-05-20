@@ -8,7 +8,7 @@ export const AuthController = {
     log.debug('Entrée dans AuthController.login', { category: 'operation', ip: req.ip })
     const body = validateLoginRequest(req.body)
     const result = await AuthService.login(body)
-    log.notice('Connexion réussie', { category: 'audit', email: body.email })
+    log.notice('Connexion réussie', { category: 'audit', username: body.username })
     res.json(result)
   },
 

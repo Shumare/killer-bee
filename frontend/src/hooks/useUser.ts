@@ -3,7 +3,7 @@ import { getUser } from '../api/user.api'
 import { mapUserResponseToUser } from '../mappers/user.mapper'
 import type { User } from '../models/User'
 
-export default function useUser(userId: number) {
+export default function useUser(userId: string) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [hasError, setHasError] = useState(false)
