@@ -8,4 +8,9 @@ export const env = {
   DB_USER: process.env.DB_USER ?? 'LOGIN_APP',
   DB_PASSWORD: process.env.DB_PASSWORD ?? '',
   CIPHER_KEY: process.env.CIPHER_KEY ?? 'killer-bee-default-key',
+  // Active Directory / LDAP
+  LDAP_URL:     process.env.LDAP_URL     ?? 'ldap://127.0.0.1:389',
+  LDAP_BIND_DN: process.env.LDAP_BIND_DN ?? '',
+  LDAP_BIND_PW: process.env.LDAP_BIND_PW ?? '',
+  LDAP_BASE_DN: process.env.LDAP_BASE_DN ?? 'DC=killerbee,DC=local',
 }

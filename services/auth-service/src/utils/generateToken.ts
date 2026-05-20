@@ -1,7 +1,11 @@
 import { JWT_SECRET, JWT_EXPIRATION } from '../config/jwt'
 
-type TokenPayload = {
-  userId: number
+export type TokenPayload = {
+  sub:       string
+  full_name: string
+  email:     string
+  role:      string
+  schema:    string
 }
 
 export function generateToken(payload: TokenPayload): string {

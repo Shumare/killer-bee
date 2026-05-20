@@ -5,15 +5,15 @@ export function validateLoginRequest(body: unknown): LoginRequestDTO {
     throw Object.assign(new Error('Body invalide'), { status: 400 })
   }
 
-  const { email, password } = body as Record<string, unknown>
+  const { username, password } = body as Record<string, unknown>
 
-  if (typeof email !== 'string' || !email.includes('@')) {
-    throw Object.assign(new Error('Email invalide'), { status: 400 })
+  if (typeof username !== 'string' || username.trim().length === 0) {
+    throw Object.assign(new Error('Nom d\'utilisateur invalide'), { status: 400 })
   }
 
-  if (typeof password !== 'string' || password.length < 6) {
-    throw Object.assign(new Error('Mot de passe trop court'), { status: 400 })
+  if (typeof password !== 'string' || password.length === 0) {
+    throw Object.assign(new Error('Mot de passe requis'), { status: 400 })
   }
 
-  return { email, password }
+  return { username: username.trim(), password }
 }

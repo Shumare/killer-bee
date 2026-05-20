@@ -1,10 +1,9 @@
 export type LoginRequestDTO = {
-  email: string
+  username: string
   password: string
 }
 
 export type LoginResponseDTO = {
   access_token: string
-  user_id: number
   full_name: string
 }

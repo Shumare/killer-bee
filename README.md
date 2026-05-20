@@ -1,34 +1,41 @@
 # killer-bee
 
-Application web full-stack organisée en 3 couches indépendantes : **frontend**, **backend** et **gateway**. Chaque couche a une responsabilité unique et communique via des interfaces contractuelles claires.
+Application web full-stack en architecture **microservices**. Chaque service est indépendant, déployé dans son propre conteneur Docker, et communique via un réseau interne chiffré.
 
 ---
 
 ## Architecture globale
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                          UTILISATEUR                            │
-└─────────────────────────────┬───────────────────────────────────┘
-                              │ HTTP (dev) / HTTPS (prod)
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│               FRONTEND nginx:80  (Docker : killer-bee-frontend) │
-│                                                                 │
-│   /*          → fichiers statiques React                        │
-│   /api/*      → proxy → backend:3000                           │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │ /api/*
+┌──────────────────────────────────────────────────────────────────┐
+│                          UTILISATEUR                             │
+└──────────────────────────────┬───────────────────────────────────┘
+                               │ HTTP :80
                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│               BACKEND Express:3000  (Docker : killer-bee-backend)│
-│                                                                 │
-│  /api/auth/*       /api/users/*      /api/freezbe/*             │
-│  /api/ingredients/*                 /api/processes/*            │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│              GATEWAY  Traefik:80  (killer-bee-gateway)           │
+│                                                                  │
+│   /*       → frontend:80      (secure-headers, compress)         │
+│   /api/*   → services:3001-3005  (rate-limit, secure-headers)    │
+└───────────┬──────────────────────────────────────────────────────┘
+            │
+            ├──────────────────────────────────────┐
+            ▼                                      ▼
+┌───────────────────────┐             ┌────────────────────────────┐
+│  FRONTEND  nginx:80   │             │  MICROSERVICES             │
+│  killer-bee-frontend  │             │                            │
+│                       │             │  auth-service      :3001   │
+│  /* → React SPA       │             │  user-service      :3002   │
+│  /api/* → proxy       │             │  ingredient-service :3003  │
+└───────────────────────┘             │  freezbe-service   :3004   │
+                                      │  process-service   :3005   │
+                                      └────────────────────────────┘
+                                               │ inter-service HTTP
+                                               │ (chiffré)
+                                      process ─┘─► freezbe
 ```
 
-> **Traefik** (optionnel) : disponible dans `gateway/docker/docker-compose.yml` pour un déploiement production avec HTTPS. En dev local Docker, c'est nginx qui fait le routage.
+> En **développement local**, nginx proxyfie `/api/*` directement vers les services. En **production**, Traefik assure le routage et la terminaison TLS.
 
 ---
 
@@ -36,148 +43,56 @@ Application web full-stack organisée en 3 couches indépendantes : **frontend**
 
 ```
 killer-bee/
-├── frontend/              # Application React / TypeScript
-├── backend/               # API REST Node / TypeScript
-├── gateway/               # Configuration Traefik (production)
-├── middleware-local/      # Middlewares locaux (hors Docker)
-├── docker-compose.yml     # Orchestration locale (backend + frontend)
-└── .env.example           # Variables d'environnement à configurer
+├── services/
+│   ├── auth-service/          # Authentification JWT
+│   ├── user-service/          # Gestion des profils
+│   ├── ingredient-service/    # CRUD ingrédients
+│   ├── freezbe-service/       # CRUD modèles Freezbe
+│   └── process-service/       # CRUD procédés (appelle freezbe-service)
+├── frontend/                  # Application React + Vite
+├── gateway/                   # Configuration Traefik (production)
+├── middleware-local/          # Librairie npm partagée (normalisation des réponses)
+├── docker-compose.yml         # Orchestration locale (6 conteneurs)
+└── .env.example               # Variables d'environnement à configurer
 ```
 
 ---
 
-## Frontend
+## Services
 
-### Rôle
-Interface utilisateur React avec TypeScript. Communique avec le backend uniquement via la couche `api/`. Ne connaît pas l'organisation interne du backend.
+### Endpoints
 
-### Structure
+| Service              | Port | Routes principales                                             |
+|----------------------|------|----------------------------------------------------------------|
+| **auth-service**     | 3001 | `POST /api/auth/login`, `POST /api/auth/logout`                |
+| **user-service**     | 3002 | `GET/PUT /api/users/:id`                                       |
+| **ingredient-service** | 3003 | `GET/POST /api/ingredients`, `GET/PUT/DELETE /api/ingredients/:id` |
+| **freezbe-service**  | 3004 | `GET/POST /api/freezbe`, `GET/PUT/DELETE /api/freezbe/:id`     |
+| **process-service**  | 3005 | `GET/POST /api/processes`, `GET/PUT/DELETE /api/processes/:id` |
 
-```
-frontend/src/
-├── ui/
-│   ├── pages/         # Pages complètes
-│   │   ├── LoginPage.tsx
-│   │   ├── DashboardPage.tsx    # Shell principal avec navigation
-│   │   ├── FreezebePage.tsx     # CRUD modèles Freezbe
-│   │   ├── IngredientPage.tsx   # CRUD ingrédients
-│   │   ├── ProcessPage.tsx      # CRUD procédés de fabrication
-│   │   └── ProfilePage.tsx
-│   ├── components/    # Composants réutilisables (Button, Input, LoginForm, Navbar)
-│   └── widgets/       # Assemblages (AuthLayout, DashboardHeader, Sidebar)
-│
-├── api/               # Appels réseau centralisés
-│   ├── client.ts          # Client HTTP fetch natif
-│   ├── auth.api.ts        # login(), logout()
-│   ├── user.api.ts        # getUser(), updateProfile()
-│   ├── freezbe.api.ts     # getAllFreezebes(), createFreezebe(), …
-│   ├── ingredient.api.ts  # getAllIngredients(), createIngredient(), …
-│   └── process.api.ts     # getAllProcesses(), createProcess(), …
-│
-├── dto/               # Types des données reçues du backend
-│   ├── auth.dto.ts
-│   ├── user.dto.ts
-│   ├── freezbe.dto.ts
-│   ├── ingredient.dto.ts
-│   └── process.dto.ts
-│
-├── models/            # Types métier frontend (User, Session)
-├── mappers/           # Transformation DTO → Model
-├── schemas/           # Validation optionnelle des données reçues
-├── hooks/             # Logique React
-│   ├── useLogin.ts
-│   ├── useLogout.ts
-│   ├── useUser.ts
-│   ├── useFreezebes.ts
-│   ├── useIngredients.ts
-│   └── useProcesses.ts
-├── store/             # État global React Context
-│   ├── auth.store.ts      # Utilisateur connecté + session
-│   ├── app.store.ts       # État global de l'app
-│   └── router.store.ts    # Navigation entre pages
-├── security/          # Guards d'accès frontend
-└── utils/             # Fonctions pures (formatDate, generateSlug)
-```
+Tous les services exposent également `GET /health`.
 
-### Flux d'une donnée frontend
+### Structure interne (identique pour chaque service)
 
 ```
-Utilisateur (clic)
-    │
-    ▼
-ui/components/LoginForm.tsx
-    │  appelle
-    ▼
-hooks/useLogin.ts
-    │  appelle
-    ▼
-api/auth.api.ts  ──────────────────►  nginx  ──►  Backend
-                                          │
-                 ◄────────────────────────┘
-    │  reçoit LoginResponseDTO
-    ▼
-mappers/auth.mapper.ts   (DTO → User + Session)
-    │
-    ▼
-store/auth.store.ts      (stockage état global)
-    │
-    ▼
-ui/                      (re-render → DashboardPage)
-```
-
----
-
-## Backend
-
-### Rôle
-API REST Node/TypeScript. Contient la logique métier, la validation des données entrantes et l'accès aux données. Les données sont actuellement servies depuis une couche mock en mémoire.
-
-### Structure
-
-```
-backend/src/
-├── routes/            # Déclaration des endpoints Express
-│   ├── auth.routes.ts
-│   ├── user.routes.ts
-│   ├── freezbe.routes.ts
-│   ├── ingredient.routes.ts
-│   └── process.routes.ts
-│
-├── controllers/       # Lecture body HTTP → appel service → réponse
-│   ├── AuthController.ts
-│   ├── FreezebeController.ts
-│   ├── IngredientController.ts
-│   └── ProcessController.ts
-│
-├── services/          # Logique métier — règles, orchestration
-│   ├── AuthService.ts
-│   ├── FreezebeService.ts
-│   ├── IngredientService.ts
-│   └── ProcessService.ts
-│
-├── repositories/      # Accès données (appelle mock-data/)
-│   ├── UserRepository.ts
-│   ├── SessionRepository.ts
-│   ├── FreezebeRepository.ts
-│   ├── IngredientRepository.ts
-│   └── ProcessRepository.ts
-│
-├── mock-data/         # Données en mémoire (remplace la DB)
-│   ├── user.mock.ts
-│   ├── freezbe.mock.ts
-│   ├── ingredient.mock.ts
-│   └── process.mock.ts
-│
-├── dto/               # Formats d'échange API
+services/<nom>/src/
+├── config/            # env.ts, server.ts (Express + middlewares)
+├── routes/            # Déclaration des endpoints
+├── controllers/       # Parsing HTTP → appel service → réponse
+├── services/          # Logique métier
+├── repositories/      # Accès données (mock en mémoire, prêt pour MSSQL)
+├── mock-data/         # Données de démonstration en mémoire
+├── dto/               # Formats d'échange API (Request / Response)
 ├── models/            # Objets métier internes
 ├── mappers/           # Transformations Record → Model → DTO
-├── middlewares/       # auth.middleware, error.middleware
-├── domain/            # Définitions de domaine métier
+├── middlewares/
+│   ├── auth.middleware.ts    # Vérification JWT (tous endpoints sauf login)
+│   ├── cipher.middleware.ts  # Chiffrement/déchiffrement automatique
+│   └── error.middleware.ts   # Gestion centralisée des erreurs
 ├── security/
-│   ├── crypto/        # Chiffrement symétrique personnalisé
-│   └── audit/         # Journalisation des événements de sécurité
-├── config/            # env.ts, server.ts, jwt.ts
-└── utils/             # asyncHandler, logger
+│   ├── crypto/cipher.ts      # Algorithme composite (Vigenère + transposition + XOR)
+│   └── audit/audit.logger.ts # Journalisation des événements sensibles
+└── utils/             # asyncHandler, logger (Winston), generateToken, hashPassword
 ```
 
 ### Flux d'une requête backend
@@ -185,68 +100,100 @@ backend/src/
 ```
 POST /api/auth/login
     │
-    ▼
-routes/auth.routes.ts  (asyncHandler)
+    ▼ cipher.middleware (déchiffre le body)
+    ▼ routes/auth.routes.ts
+    ▼ controllers/AuthController.ts
+    ▼ services/AuthService.ts  (audit log)
+    ▼ repositories/UserRepository.ts
+    ▼ mock-data/user.mock.ts
+    ▼ mappers/auth.mapper.ts  (Record → LoginResponseDTO)
+    ▼ cipher.middleware (chiffre la réponse)
     │
-    ▼
-controllers/AuthController.ts
-    │
-    ▼
-services/AuthService.ts  (audit log login_attempt)
-    │
-    ▼
-repositories/UserRepository.ts
-    │
-    ▼
-mock-data/user.mock.ts   (tableau en mémoire)
-    │  retourne UserRecord
-    ▼
-mappers/auth.mapper.ts   (Record → LoginResponseDTO)
-    │
-    ▼
-{ access_token, user_id, full_name }
+    └─► { access_token, user_id, full_name }  [chiffré]
 ```
 
 ---
 
-## Gateway
+## Frontend
 
 ### Rôle
-Reverse proxy Traefik. Prévu pour le déploiement production avec HTTPS et Zero Trust. **Non actif en dev local Docker** — c'est nginx qui assure le routage dans ce cas.
+
+Interface React/TypeScript. Tout le trafic vers le backend passe par `api/client.ts` qui chiffre les requêtes et déchiffre les réponses de façon transparente.
 
 ### Structure
 
 ```
-gateway/
-├── traefik/
-│   └── traefik.yml        # Configuration principale (entrypoints, providers, logs)
-├── dynamic/
-│   ├── routers.yml        # Règles de routage URL → service
-│   ├── services.yml       # Déclaration des services (adresses internes)
-│   └── middlewares.yml    # rate-limit, secure-headers, auth-check, compress
-├── certificates/          # Certificats SSL/TLS (non versionnés)
-├── logs/                  # Journaux HTTP et erreurs
-├── docker/
-│   └── docker-compose.yml # Orchestration production avec Traefik
-└── utils/
-    └── rotateLogs.sh      # Rotation des fichiers de log
+frontend/src/
+├── ui/
+│   ├── pages/         # LoginPage, DashboardPage, FreezebePage,
+│   │                  # IngredientPage, ProcessPage, ProfilePage
+│   ├── components/    # Button, Input, LoginForm, Navbar, …
+│   └── widgets/       # AuthLayout, DashboardHeader, Sidebar
+├── api/
+│   ├── client.ts          # Client HTTP (chiffrement transparent)
+│   ├── auth.api.ts
+│   ├── user.api.ts
+│   ├── freezbe.api.ts
+│   ├── ingredient.api.ts
+│   └── process.api.ts
+├── dto/               # Types des réponses backend
+├── models/            # Types métier frontend (User, Session)
+├── mappers/           # DTO → Model
+├── hooks/             # useLogin, useLogout, useUser, useFreezebes, …
+├── store/             # Contexte global (auth.store, app.store, router.store)
+├── security/          # Guards d'accès, cipher.ts (version navigateur)
+└── utils/             # Fonctions pures (formatDate, …)
 ```
 
-### Règles de routage (production)
+### Flux d'une donnée frontend
 
-| Préfixe URL  | Service cible  | Middlewares appliqués          |
-|--------------|----------------|-------------------------------|
-| `/api/*`     | backend:3000   | `rate-limit`, `secure-headers` |
-| `/*`         | frontend:80    | `secure-headers`, `compress`   |
+```
+Utilisateur (clic)
+    ▼ ui/components/LoginForm.tsx
+    ▼ hooks/useLogin.ts
+    ▼ api/auth.api.ts
+    ▼ api/client.ts  ──[body chiffré]──►  nginx  ──►  auth-service:3001
+                     ◄──[réponse chiffrée]──────────────────────────────
+    ▼ api/client.ts  (déchiffrement)
+    ▼ mappers/auth.mapper.ts  (DTO → User + Session)
+    ▼ store/auth.store.ts
+    ▼ DashboardPage  (re-render)
+```
 
-### Middlewares
+---
+
+## Sécurité
+
+### Chiffrement applicatif (bout en bout)
+
+Toutes les communications client-serveur et inter-services sont chiffrées avec un algorithme composite à 3 couches :
+
+1. **Vigenère (substitution)** — décalage adaptatif par clé partagée
+2. **Transposition par colonne** — réorganisation matricielle (3-5 colonnes selon la clé)
+3. **XOR** — chiffrement symétrique final
+
+Le résultat est encodé en **Base64**. La même clé (`CIPHER_KEY`) est utilisée côté backend ; `VITE_CIPHER_KEY` est injectée dans le bundle frontend au moment du build Docker.
+
+| Composant | Fichier | Rôle |
+|-----------|---------|------|
+| Backend | `services/*/src/security/crypto/cipher.ts` | `encrypt()` / `decrypt()` |
+| Frontend | `frontend/src/security/cipher.ts` | Version navigateur (btoa/atob) |
+| Middleware backend | `cipher.middleware.ts` | Override automatique `res.json()` + parsing body |
+| Client HTTP frontend | `api/client.ts` | Chiffre le body, déchiffre la réponse |
+
+### Authentification
+
+- JWT HS256 avec `JWT_SECRET` (min. 32 caractères)
+- Token transmis via `Authorization: Bearer <token>`
+- Vérifié par `auth.middleware.ts` sur tous les endpoints protégés
+
+### Gateway (production)
 
 | Middleware       | Rôle                                             |
 |------------------|--------------------------------------------------|
-| `secure-headers` | Protection XSS, clickjacking, content-type sniff |
-| `rate-limit`     | 100 req/s moy., burst 50                         |
-| `auth-check`     | Vérification JWT via backend (non actif en dev)  |
-| `compress`       | Compression des réponses                         |
+| `secure-headers` | X-Frame-Options, X-XSS-Protection, nosniff      |
+| `rate-limit`     | 100 req/s moyen, burst 50                        |
+| `compress`       | Compression gzip des réponses                    |
 
 ---
 
@@ -254,137 +201,112 @@ gateway/
 
 ### Conteneurs
 
-| Conteneur              | Image de base   | Rôle                                      |
-|------------------------|-----------------|-------------------------------------------|
-| `killer-bee-frontend`  | nginx:alpine    | Sert le SPA React + proxyfie `/api` vers le backend |
-| `killer-bee-backend`   | node:20-alpine  | API Express compilée (TypeScript → JS)    |
+| Conteneur                      | Image           | Port interne | Exposé |
+|-------------------------------|-----------------|--------------|--------|
+| `killer-bee-gateway`           | traefik:v3.0    | 80           | 80     |
+| `killer-bee-frontend`          | nginx:alpine    | 80           | —      |
+| `killer-bee-auth-service`      | node:20-alpine  | 3001         | —      |
+| `killer-bee-user-service`      | node:20-alpine  | 3002         | —      |
+| `killer-bee-ingredient-service`| node:20-alpine  | 3003         | —      |
+| `killer-bee-freezbe-service`   | node:20-alpine  | 3004         | —      |
+| `killer-bee-process-service`   | node:20-alpine  | 3005         | —      |
 
-### Lancer en local
+Seul le port 80 (gateway) est accessible depuis l'hôte. Les services backend communiquent via le réseau Docker interne `app`.
+
+### Démarrage local
 
 ```bash
 # 1. Configurer les variables d'environnement
 cp .env.example .env
+# Renseigner DB_HOST, DB_PASSWORD, JWT_SECRET, CIPHER_KEY, VITE_CIPHER_KEY
 
-# 2. Construire les images et démarrer
-docker-compose up --build
+# 2. Construire et démarrer les 6 conteneurs
+docker compose up --build
 
-# L'application est disponible sur http://localhost
+# Application disponible sur http://localhost
 ```
 
-### Reconstruction après modification
+### Commandes utiles
 
 ```bash
-# Reconstruire un seul service
-docker-compose up --build backend
-docker-compose up --build frontend
+# Reconstruire un service spécifique
+docker compose up --build auth-service
+
+# Voir les logs d'un service
+docker compose logs -f process-service
 
 # Arrêter et supprimer les conteneurs
-docker-compose down
+docker compose down
 ```
 
-### Architecture des images
+### Architecture des images (multi-stage)
 
-**Backend** (`backend/Dockerfile`) — build multi-stage :
+**Services backend** (`services/*/Dockerfile`) :
 ```
-node:20-alpine (builder)
-  ├── npm ci              # installe toutes les dépendances
-  └── npm run build       # compile TypeScript → dist/
-
-node:20-alpine (final)
-  ├── npm ci --omit=dev   # uniquement les dépendances de production
-  └── dist/               # code compilé copié depuis builder
+node:20-alpine (builder)  →  npm install + tsc
+node:20-alpine (final)    →  npm install --omit=dev + dist/
 ```
 
-**Frontend** (`frontend/Dockerfile`) — build multi-stage :
+**Frontend** (`frontend/Dockerfile`) :
 ```
-node:20-alpine (builder)
-  ├── npm ci              # installe toutes les dépendances
-  └── npm run build       # compile React → dist/ (fichiers statiques)
-
-nginx:alpine (final)
-  ├── dist/               # fichiers statiques copiés depuis builder
-  └── nginx.conf          # routing : /* → statiques, /api/* → backend:3000
+node:20-alpine (builder)  →  npm install --include=dev + vite build
+                              ARG VITE_CIPHER_KEY injecté dans le bundle JS
+nginx:alpine (final)      →  dist/ + nginx.conf (SPA routing)
 ```
 
-### Réseau interne
+### Healthchecks
 
-```
-┌─────────────────────────────────────────┐
-│         Réseau Docker "app"             │
-│                                         │
-│  killer-bee-frontend:80  ──/api/*──►   │
-│  killer-bee-backend:3000               │
-│                                         │
-└──────────────┬──────────────────────────┘
-               │ port 80
-               ▼
-          http://localhost
-```
-
-Le backend n'est **pas exposé** sur l'hôte — seul le frontend (port 80) est accessible depuis le navigateur.
-
-### Données
-
-Les données (ingrédients, modèles Freezbe, procédés) sont stockées **en mémoire** dans le conteneur backend. Elles sont perdues à chaque `docker-compose down`. Pour persister les données, une base de données (PostgreSQL, SQLite) avec un volume Docker sera nécessaire.
-
-### Déploiement production (avec Traefik)
-
-```bash
-cd gateway/docker
-cp .env.example .env   # renseigner JWT_SECRET
-docker-compose up --build
-```
-
-Traefik prend en charge le port 80 et 443. Des certificats TLS doivent être placés dans `gateway/certificates/`.
+Tous les services sont surveillés via `GET /health` :
+- Intervalle : 15s
+- Timeout : 5s
+- Retries : 3
+- Start period : 20s
 
 ---
 
-## Flux complet — Connexion utilisateur
+## Variables d'environnement
+
+```env
+# Base de données SQL Server
+DB_HOST=           # IP / hostname du serveur MSSQL
+DB_PORT=1433
+DB_NAME=killer_bee
+DB_USER=           # ex. LOGIN_APP
+DB_PASSWORD=
+
+# Authentification
+JWT_SECRET=        # Chaîne aléatoire de 32+ caractères
+
+# Chiffrement applicatif
+CIPHER_KEY=        # Clé partagée backend (16-32 caractères)
+VITE_CIPHER_KEY=   # Même valeur — injectée dans le bundle frontend au build
+```
+
+---
+
+## Déploiement production (Proxmox — 4 VMs)
 
 ```
-[Navigateur]
-    │
-    │  1. Clic "Se connecter"
-    ▼
-[LoginForm.tsx]
-    │
-    │  2. handleSubmit() → useLogin()
-    ▼
-[useLogin.ts]
-    │
-    │  3. POST /api/auth/login
-    ▼
-[nginx]  ──  proxy /api/*  ──►  [backend:3000]
-                                      │
-                                      │  4. routes → controller
-                                      │  5. service (audit log)
-                                      │  6. repository → mock-data
-                                      │  7. mapper Record → DTO
-                                      ▼
-                               { access_token, user_id, full_name }
-                                      │
-[auth.mapper.ts]  ◄── réponse ────────┘
-    │
-    │  8. DTO → User + Session
-    ▼
-[auth.store.ts]
-    │
-    │  9. stockage état global
-    ▼
-[DashboardPage]   10. re-render → interface connectée
+VM-GATEWAY  (Traefik, port 80/443)
+    ├─► VM-FRONT  (nginx, port 80 interne)
+    └─► VM-BACK   (Node.js services, ports 3001-3005 internes)
+            └─► VM-BDD  (MSSQL Server, port 1433 interne)
 ```
+
+Voir `DEPLOIEMENT.md` pour le guide complet (création des VMs, init SQL, PM2, certificats TLS).
 
 ---
 
 ## État actuel
 
-| Couche          | État                       | Notes                                             |
-|-----------------|----------------------------|---------------------------------------------------|
-| Frontend        | Fonctionnel                | Pages Freezbe, Ingrédients, Procédés avec CRUD    |
-| Backend         | Fonctionnel                | Données mock en mémoire (pas de DB)               |
-| Gateway Traefik | Configuré, non actif       | Prévu pour la production, nécessite des certificats |
-| Base de données | Non implémentée            | Repositories prêts à brancher sur une vraie DB    |
-| Docker          | Opérationnel               | 2 conteneurs : backend + frontend via nginx       |
+| Composant            | État                    | Notes                                              |
+|----------------------|-------------------------|----------------------------------------------------|
+| Frontend             | Fonctionnel             | Pages Freezbe, Ingrédients, Procédés avec CRUD     |
+| Microservices (×5)   | Fonctionnels            | Données mock en mémoire                            |
+| Chiffrement E2E      | Actif                   | Vigenère + transposition + XOR sur tout le trafic  |
+| Base de données      | Non branchée            | Repositories prêts pour MSSQL Server               |
+| Gateway Traefik      | Configuré               | Actif en production (nécessite certificats TLS)    |
+| Docker               | Opérationnel            | 6 conteneurs orchestrés avec healthchecks          |
 
 ---
 
@@ -393,4 +315,4 @@ Traefik prend en charge le port 80 et 443. Des certificats TLS doivent être pla
 - **Branches** : `feature/`, `fix/`, `refactor/`, `hotfix/`, `docs/`
 - **Commits** : [Conventional Commits](https://www.conventionalcommits.org/) — `feat(scope): description`
 - **Versioning** : [Semantic Versioning](https://semver.org/) — `MAJOR.MINOR.PATCH`
-- **Nommage** : PascalCase (composants), camelCase (variables/utils), UPPER_SNAKE_CASE (constantes globales)
+- **Nommage** : PascalCase (composants/classes), camelCase (variables/fonctions), UPPER_SNAKE_CASE (constantes)

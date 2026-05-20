@@ -11,7 +11,7 @@ type AuditEvent =
 
 type AuditEntry = {
   event: AuditEvent
-  userId?: number
+  userId?: string | number
   ip?: string
   path?: string
   detail?: string
@@ -26,16 +26,16 @@ function writeAuditEntry(entry: AuditEntry, level: 'notice' | 'info' | 'warn' | 
   else                       log.notice(msg, meta)
 }
 
-export function logLoginAttempt(email: string, ip?: string): void {
-  writeAuditEntry({ event: 'login_attempt', detail: email, ip }, 'notice')
+export function logLoginAttempt(username: string, ip?: string): void {
+  writeAuditEntry({ event: 'login_attempt', detail: username, ip }, 'notice')
 }
 
-export function logLoginSuccess(userId: number, ip?: string): void {
-  writeAuditEntry({ event: 'login_success', userId, ip }, 'info')
+export function logLoginSuccess(username: string, ip?: string): void {
+  writeAuditEntry({ event: 'login_success', userId: username, ip }, 'info')
 }
 
-export function logLoginFailure(email: string, reason: string, ip?: string): void {
-  writeAuditEntry({ event: 'login_failure', detail: `${email}: ${reason}`, ip }, 'warn')
+export function logLoginFailure(username: string, reason: string, ip?: string): void {
+  writeAuditEntry({ event: 'login_failure', detail: `${username}: ${reason}`, ip }, 'warn')
 }
 
 export function logAccessDenied(userId: number | undefined, path: string): void {
