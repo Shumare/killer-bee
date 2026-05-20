@@ -1,6 +1,6 @@
 export function mapLoginResponseToUser(dto) {
     return {
-        id: dto.user_id,
+        id: dto.username,
         name: dto.full_name,
         email: '',
     };
@@ -8,6 +8,6 @@ export function mapLoginResponseToUser(dto) {
 export function mapLoginResponseToSession(dto) {
     return {
         token: dto.access_token,
-        userId: dto.user_id,
+        userId: dto.username,
     };
 }
