@@ -3,7 +3,7 @@ version: '3.8'
 x-logging: &default-logging
   driver: syslog
   options:
-    syslog-address: "unix:///dev/log"
+    syslog-address: "udp://127.0.0.1:514"
     syslog-facility: "local0"
     tag: "{{.Name}}"
 
