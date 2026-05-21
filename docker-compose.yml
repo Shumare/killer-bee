@@ -1,11 +1,19 @@
 version: '3.8'
 
+x-logging: &default-logging
+  driver: syslog
+  options:
+    syslog-address: "unix:///dev/log"
+    syslog-facility: "local0"
+    tag: "{{.Name}}"
+
 services:
 
   # ── Gateway (Traefik) ─────────────────────────────────────────────────────────
   gateway:
     image: traefik:v3.0
     container_name: killer-bee-gateway
+    logging: *default-logging
     ports:
       - "80:80"
     volumes:
@@ -37,6 +45,7 @@ services:
       args:
         - VITE_CIPHER_KEY=${VITE_CIPHER_KEY:-killer-bee-default-key}
     container_name: killer-bee-frontend
+    logging: *default-logging
     networks:
       - app
     restart: unless-stopped
@@ -47,6 +56,7 @@ services:
       context: ./services/auth-service
       dockerfile: Dockerfile
     container_name: killer-bee-auth
+    logging: *default-logging
     environment:
       - NODE_ENV=production
       - PORT=3001
@@ -58,9 +68,6 @@ services:
       - DB_NAME=${DB_NAME:-killer_bee}
       - DB_USER=${DB_USER:-LOGIN_APP}
       - DB_PASSWORD=${DB_PASSWORD}
-      - LDAP_URL=${LDAP_URL}
-      - LDAP_DOMAIN=${LDAP_DOMAIN:-killerbee.local}
-      - LDAP_BASE_DN=${LDAP_BASE_DN:-DC=killerbee,DC=local}
     networks:
       - app
     restart: unless-stopped
@@ -77,6 +84,7 @@ services:
       context: ./services/user-service
       dockerfile: Dockerfile
     container_name: killer-bee-user
+    logging: *default-logging
     environment:
       - NODE_ENV=production
       - PORT=3002
@@ -104,6 +112,7 @@ services:
       context: ./services/ingredient-service
       dockerfile: Dockerfile
     container_name: killer-bee-ingredient
+    logging: *default-logging
     environment:
       - NODE_ENV=production
       - PORT=3003
@@ -131,6 +140,7 @@ services:
       context: ./services/freezbe-service
       dockerfile: Dockerfile
     container_name: killer-bee-freezbe
+    logging: *default-logging
     environment:
       - NODE_ENV=production
       - PORT=3004
@@ -158,6 +168,7 @@ services:
       context: ./services/process-service
       dockerfile: Dockerfile
     container_name: killer-bee-process
+    logging: *default-logging
     environment:
       - NODE_ENV=production
       - PORT=3005
